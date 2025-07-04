@@ -53,6 +53,15 @@ public interface RoomRepository extends JpaRepository<Room,Integer> {
     );
 
 
+    Optional<Room> findByNameEs(String nameEs);
+
+    @Query("""
+    SELECT r FROM Room r
+    WHERE LOWER(TRIM(r.nameEs)) = LOWER(:name)
+""")
+    Optional<Room> findByNameEsIgnoreCaseTrim(@Param("name") String name);
+
+
 
 
 }

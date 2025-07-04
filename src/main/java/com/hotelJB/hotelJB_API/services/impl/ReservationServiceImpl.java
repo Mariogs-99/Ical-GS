@@ -4,10 +4,7 @@ import com.hotelJB.hotelJB_API.models.dtos.ReservationRoomDTO;
 import com.hotelJB.hotelJB_API.models.entities.Reservation;
 import com.hotelJB.hotelJB_API.models.entities.ReservationRoom;
 import com.hotelJB.hotelJB_API.models.entities.Room;
-import com.hotelJB.hotelJB_API.models.responses.CategoryRoomResponse;
-import com.hotelJB.hotelJB_API.models.responses.ReservationResponse;
-import com.hotelJB.hotelJB_API.models.responses.ReservationRoomResponse;
-import com.hotelJB.hotelJB_API.models.responses.RoomResponse;
+import com.hotelJB.hotelJB_API.models.responses.*;
 import com.hotelJB.hotelJB_API.repositories.ReservationRepository;
 import com.hotelJB.hotelJB_API.repositories.ReservationRoomRepository;
 import com.hotelJB.hotelJB_API.repositories.RoomRepository;
@@ -258,6 +255,15 @@ public class ReservationServiceImpl implements ReservationService {
 //                htmlBody
 //        );
 
+
+        RoomShortResponse roomShortResponse = null;
+        if (reservation.getRoom() != null) {
+            roomShortResponse = new RoomShortResponse(
+                    reservation.getRoom().getRoomId(),
+                    reservation.getRoom().getNameEs()
+            );
+        }
+
         // Devolver respuesta incluyendo el enlace de pago
         return new ReservationResponse(
                 reservation.getReservationId(),
@@ -273,6 +279,7 @@ public class ReservationServiceImpl implements ReservationService {
                 reservation.getCreationDate(),
                 reservation.getStatus(),
                 roomResponses,
+                roomShortResponse,
                 reservation.getRoomNumber(),
                 reservation.getDteControlNumber(),
                 null
@@ -367,6 +374,15 @@ public class ReservationServiceImpl implements ReservationService {
                         return resp;
                     }).collect(Collectors.toList());
 
+                    RoomShortResponse roomShortResponse = null;
+                    if (res.getRoom() != null) {
+                        roomShortResponse = new RoomShortResponse(
+                                res.getRoom().getRoomId(),
+                                res.getRoom().getNameEs()
+                        );
+                    }
+
+
                     return new ReservationResponse(
                             res.getReservationId(),
                             res.getReservationCode(),
@@ -381,6 +397,7 @@ public class ReservationServiceImpl implements ReservationService {
                             res.getCreationDate(),
                             res.getStatus(),
                             roomResponses,
+                            roomShortResponse,
                             res.getRoomNumber(),
                             res.getDteControlNumber(),
                             null
@@ -478,6 +495,14 @@ public class ReservationServiceImpl implements ReservationService {
             return resp;
         }).collect(Collectors.toList());
 
+        RoomShortResponse roomShortResponse = null;
+        if (reservation.getRoom() != null) {
+            roomShortResponse = new RoomShortResponse(
+                    reservation.getRoom().getRoomId(),
+                    reservation.getRoom().getNameEs()
+            );
+        }
+
         return new ReservationResponse(
                 reservation.getReservationId(),
                 reservation.getReservationCode(),
@@ -492,6 +517,7 @@ public class ReservationServiceImpl implements ReservationService {
                 reservation.getCreationDate(),
                 reservation.getStatus(),
                 roomResponses,
+                roomShortResponse,
                 reservation.getRoomNumber(),
                 reservation.getDteControlNumber(),
                 null
@@ -555,6 +581,14 @@ public class ReservationServiceImpl implements ReservationService {
             return resp;
         }).collect(Collectors.toList());
 
+        RoomShortResponse roomShortResponse = null;
+        if (reservation.getRoom() != null) {
+            roomShortResponse = new RoomShortResponse(
+                    reservation.getRoom().getRoomId(),
+                    reservation.getRoom().getNameEs()
+            );
+        }
+
         return new ReservationResponse(
                 reservation.getReservationId(),
                 reservation.getReservationCode(),
@@ -569,6 +603,7 @@ public class ReservationServiceImpl implements ReservationService {
                 reservation.getCreationDate(),
                 reservation.getStatus(),
                 roomResponses,
+                roomShortResponse,
                 reservation.getRoomNumber(),
                 reservation.getDteControlNumber(),
                 null
@@ -775,6 +810,14 @@ public class ReservationServiceImpl implements ReservationService {
         //         htmlBody
         // );
 
+            RoomShortResponse roomShortResponse = null;
+            if (reservation.getRoom() != null) {
+                roomShortResponse = new RoomShortResponse(
+                        reservation.getRoom().getRoomId(),
+                        reservation.getRoom().getNameEs()
+                );
+            }
+
         return new ReservationResponse(
                 reservation.getReservationId(),
                 reservation.getReservationCode(),
@@ -789,6 +832,7 @@ public class ReservationServiceImpl implements ReservationService {
                 reservation.getCreationDate(),
                 reservation.getStatus(),
                 roomResponses,
+                roomShortResponse,
                 reservation.getRoomNumber(),
                 reservation.getDteControlNumber(),
                 null
