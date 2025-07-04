@@ -141,7 +141,7 @@ public class ICalImportService {
     @Scheduled(fixedRate = 1800000) // Cada 30 minutos
     public void scheduledImport() {
         try {
-            importFromUrl("https://1e6e-138-219-14-103.ngrok-free.app/api/ical/booking.ics");
+            importFromUrl("https://1e6e-138-219-14-103.ngrok-free.app/api/ical/expedia.ics");
         } catch (Exception e) {
             e.printStackTrace();
         }
