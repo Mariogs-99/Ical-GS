@@ -3,8 +3,10 @@ package com.hotelJB.hotelJB_API.Ical;
 import biweekly.Biweekly;
 import biweekly.component.VEvent;
 import com.hotelJB.hotelJB_API.models.entities.Reservation;
+import com.hotelJB.hotelJB_API.models.entities.ReservationRoom;
 import com.hotelJB.hotelJB_API.models.entities.Room;
 import com.hotelJB.hotelJB_API.repositories.ReservationRepository;
+import com.hotelJB.hotelJB_API.repositories.ReservationRoomRepository;
 import com.hotelJB.hotelJB_API.repositories.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,6 +27,9 @@ public class ICalImportService {
 
     @Autowired
     private RoomRepository roomRepository;
+
+    @Autowired
+    private ReservationRoomRepository reservationRoomRepository;
 
     public void importFromUrl(String icalUrl) throws Exception {
         InputStream inputStream = new URL(icalUrl).openStream();
@@ -109,6 +114,19 @@ public class ICalImportService {
                 newReservation.setQuantityReserved(1);
 
                 reservationRepository.save(newReservation);
+
+                // ✅ Guardar ReservationRoom si hay habitación asignada
+                if (room != null) {
+                    ReservationRoom rr = new ReservationRoom();
+                    rr.setReservation(newReservation);
+                    rr.setRoom(room);
+                    rr.setQuantity(1);
+                    rr.setAssignedRoomNumber(roomNumber);
+                    reservationRoomRepository.save(rr);
+
+                    System.out.println("✅ Guardado también en reservation_room: reservationId = "
+                            + newReservation.getReservationId() + ", roomId = " + room.getRoomId());
+                }
 
                 System.out.println("✅ Importada reserva UID: " + uid +
                         " (" + initDate + " → " + finishDate + ")" +

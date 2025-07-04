@@ -23,7 +23,7 @@ public class BookingIcalMockController {
                 DTEND:20250712T160000Z
                 SUMMARY:John Doe
                 UID:booking_987654321
-                DESCRIPTION:Room: Habitacion Matrimonial\\nGuests: 2\\nTotal: $450.00
+                DESCRIPTION:Room: Habitacion Individual\\nGuests: 1\\nTotal: $250.00
                 END:VEVENT
                 BEGIN:VEVENT
                 DTSTART:20250718T160000Z
