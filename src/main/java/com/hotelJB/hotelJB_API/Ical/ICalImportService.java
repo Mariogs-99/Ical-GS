@@ -2,12 +2,14 @@ package com.hotelJB.hotelJB_API.Ical;
 
 import biweekly.Biweekly;
 import biweekly.component.VEvent;
+import com.hotelJB.hotelJB_API.models.entities.OtaIcalConfig;
 import com.hotelJB.hotelJB_API.models.entities.Reservation;
 import com.hotelJB.hotelJB_API.models.entities.ReservationRoom;
 import com.hotelJB.hotelJB_API.models.entities.Room;
 import com.hotelJB.hotelJB_API.repositories.ReservationRepository;
 import com.hotelJB.hotelJB_API.repositories.ReservationRoomRepository;
 import com.hotelJB.hotelJB_API.repositories.RoomRepository;
+import com.hotelJB.hotelJB_API.services.OtaIcalConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
 
 @Service
 public class ICalImportService {
@@ -159,12 +162,21 @@ public class ICalImportService {
         }
     }
 
+    @Autowired
+    private OtaIcalConfigService otaIcalConfigService;
+
     @Scheduled(fixedRate = 1800000) // Cada 30 minutos
     public void scheduledImport() {
-        try {
-            importFromUrl("https://6151-138-219-14-97.ngrok-free.app/api/ical/airbnb.ics");
-        } catch (Exception e) {
-            e.printStackTrace();
+        List<OtaIcalConfig> configs = otaIcalConfigService.getAllActiveConfigs();
+
+        for (OtaIcalConfig config : configs) {
+            try {
+                importFromUrl(config.getIcalUrl());
+            } catch (Exception e) {
+                System.err.println("⚠ Error importando OTA " + config.getOtaName());
+                e.printStackTrace();
+            }
         }
     }
+
 }
