@@ -125,6 +125,16 @@ public class ICalImportService {
                         resultDTO.addRejected(uid, roomName, "Habitación no encontrada");
                         continue;
                     }
+
+                    //VALIDAR CAPACIDAD MÁXIMA DE HUÉSPEDES
+                    if (room != null && guests > room.getMaxCapacity()) {
+                        System.out.println("⚠ NO se importó UID [" + uid + "] porque excede capacidad máxima de la habitación "
+                                + roomName + ". Máx permitido: " + room.getMaxCapacity() + ", huéspedes solicitados: " + guests);
+                        resultDTO.addRejected(uid, roomName,
+                                "Excede capacidad máxima de la habitación (máx: " + room.getMaxCapacity() + ", solicitados: " + guests + ")");
+                        continue;
+                    }
+
                 }
 
                 boolean overlap = false;
