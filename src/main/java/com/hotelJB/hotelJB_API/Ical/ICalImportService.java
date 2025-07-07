@@ -2,6 +2,7 @@ package com.hotelJB.hotelJB_API.Ical;
 
 import biweekly.Biweekly;
 import biweekly.component.VEvent;
+import com.hotelJB.hotelJB_API.models.dtos.ImportResultDTO;
 import com.hotelJB.hotelJB_API.models.entities.OtaIcalConfig;
 import com.hotelJB.hotelJB_API.models.entities.Reservation;
 import com.hotelJB.hotelJB_API.models.entities.ReservationRoom;
@@ -37,7 +38,9 @@ public class ICalImportService {
     @Autowired
     private OtaIcalConfigService otaIcalConfigService;
 
-    public void importFromUrl(String icalUrl, String otaName) throws Exception {
+    public ImportResultDTO importFromUrl(String icalUrl, String otaName) throws Exception {
+        ImportResultDTO resultDTO = new ImportResultDTO();
+
         System.out.println("🌐 Importando OTA [" + otaName + "] desde URL: " + icalUrl);
 
         InputStream inputStream = new URL(icalUrl).openStream();
@@ -47,7 +50,7 @@ public class ICalImportService {
 
         if (calendar == null) {
             System.out.println("⚠ No se pudo leer el calendario iCal de " + otaName + ". Está vacío o es inválido.");
-            return;
+            return resultDTO;
         }
 
         for (VEvent event : calendar.getEvents()) {
@@ -68,7 +71,6 @@ public class ICalImportService {
             String uid = event.getUid() != null ? event.getUid().getValue() : "";
             String description = event.getDescription() != null ? event.getDescription().getValue() : "";
 
-            // Ignorar bloqueos de disponibilidad de Airbnb (Not available)
             if (summary.toLowerCase().contains("not available")) {
                 System.out.println("⏭ Evento ignorado (bloqueo de disponibilidad): " + summary);
                 continue;
@@ -117,55 +119,71 @@ public class ICalImportService {
 
                 Room room = null;
                 if (!roomName.equals("Sin habitación")) {
-                    System.out.println("🔎 Buscando habitación: [" + roomName + "]");
-
                     room = roomRepository.findByNameEsIgnoreCaseTrim(roomName).orElse(null);
-
-                    if (room != null) {
-                        System.out.println("✅ Room encontrado: id = " + room.getRoomId() +
-                                ", nombre = " + room.getNameEs());
-                    } else {
+                    if (room == null) {
                         System.out.println("❌ Room NO encontrado para nombre: [" + roomName + "]");
+                        resultDTO.addRejected(uid, roomName, "Habitación no encontrada");
+                        continue;
                     }
                 }
 
-                Reservation newReservation = new Reservation();
-                newReservation.setInitDate(initDate);
-                newReservation.setFinishDate(finishDate);
-                newReservation.setName(summary.isEmpty() ? "External OTA Reservation" : summary);
-                newReservation.setReservationCode(uid);
-                newReservation.setStatus("EXTERNAL");
-                newReservation.setCantPeople(guests);
-                newReservation.setPayment(payment);
-                newReservation.setRoom(room);
-                newReservation.setRoomNumber(roomNumber);
-                newReservation.setQuantityReserved(1);
+                boolean overlap = false;
 
-                reservationRepository.save(newReservation);
-
-                if (room != null) {
-                    ReservationRoom rr = new ReservationRoom();
-                    rr.setReservation(newReservation);
-                    rr.setRoom(room);
-                    rr.setQuantity(1);
-                    rr.setAssignedRoomNumber(roomNumber);
-                    reservationRoomRepository.save(rr);
-
-                    System.out.println("✅ Guardado también en reservation_room: reservationId = "
-                            + newReservation.getReservationId() + ", roomId = " + room.getRoomId());
+                if (room != null && initDate != null && finishDate != null) {
+                    int overlapCount = reservationRepository.countOverlappingReservations(
+                            room.getRoomId(),
+                            initDate,
+                            finishDate
+                    );
+                    overlap = overlapCount > 0;
                 }
 
-                System.out.println("✅ Importada reserva UID: " + uid +
-                        " (" + initDate + " → " + finishDate + ")" +
-                        " Room: " + roomName +
-                        " Guests: " + guests +
-                        " Total: $" + payment +
-                        " RoomNumber: " + roomNumber);
+                if (!overlap) {
+                    Reservation newReservation = new Reservation();
+                    newReservation.setInitDate(initDate);
+                    newReservation.setFinishDate(finishDate);
+                    newReservation.setName(summary.isEmpty() ? "External OTA Reservation" : summary);
+                    newReservation.setReservationCode(uid);
+                    newReservation.setStatus("EXTERNAL");
+                    newReservation.setCantPeople(guests);
+                    newReservation.setPayment(payment);
+                    newReservation.setRoom(room);
+                    newReservation.setRoomNumber(roomNumber);
+                    newReservation.setQuantityReserved(1);
+
+                    reservationRepository.save(newReservation);
+
+                    if (room != null) {
+                        ReservationRoom rr = new ReservationRoom();
+                        rr.setReservation(newReservation);
+                        rr.setRoom(room);
+                        rr.setQuantity(1);
+                        rr.setAssignedRoomNumber(roomNumber);
+                        reservationRoomRepository.save(rr);
+                    }
+
+                    resultDTO.addImported(
+                            uid,
+                            roomName,
+                            initDate + " → " + finishDate
+                    );
+
+                    System.out.println("✅ Importada reserva UID: " + uid +
+                            " Room: " + roomName +
+                            " Guests: " + guests +
+                            " Total: $" + payment +
+                            " RoomNumber: " + roomNumber);
+                } else {
+                    System.out.println("⚠ NO se importó UID [" + uid + "] porque solapa fechas con otra reserva en habitación " + roomName);
+                    resultDTO.addRejected(uid, roomName, "Conflicto de fechas (overbooking)");
+                }
             }
         }
+
+        return resultDTO;
     }
 
-    @Scheduled(fixedRate = 1800000) // Cada 30 minutos
+    @Scheduled(fixedRate = 1800000)
     public void scheduledImport() {
         List<OtaIcalConfig> configs = otaIcalConfigService.getAllActiveConfigs();
 
@@ -176,7 +194,10 @@ public class ICalImportService {
             }
 
             try {
-                importFromUrl(config.getIcalUrl(), config.getOtaName());
+                ImportResultDTO result = importFromUrl(config.getIcalUrl(), config.getOtaName());
+                System.out.println("✅ Import result OTA [" + config.getOtaName() + "]:");
+                System.out.println("    Importadas: " + result.getImportedReservations().size());
+                System.out.println("    Rechazadas: " + result.getRejectedReservations().size());
             } catch (Exception e) {
                 System.err.println("⚠ Error importando OTA " + config.getOtaName() +
                         " → " + e.getMessage());
