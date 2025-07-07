@@ -34,22 +34,39 @@ public class ICalImportService {
     public void importFromUrl(String icalUrl) throws Exception {
         InputStream inputStream = new URL(icalUrl).openStream();
 
-        // ✅ Convertir a Reader UTF-8
         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
 
         var calendar = Biweekly.parse(reader).first();
 
+        if (calendar == null) {
+            System.out.println("⚠ No se pudo leer el calendario iCal. Está vacío o es inválido.");
+            return;
+        }
+
         for (VEvent event : calendar.getEvents()) {
 
-            LocalDate initDate = event.getDateStart().getValue()
-                    .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate initDate = null;
+            LocalDate finishDate = null;
 
-            LocalDate finishDate = event.getDateEnd().getValue()
-                    .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            if (event.getDateStart() != null && event.getDateStart().getValue() != null) {
+                initDate = event.getDateStart().getValue()
+                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            }
+
+            if (event.getDateEnd() != null && event.getDateEnd().getValue() != null) {
+                finishDate = event.getDateEnd().getValue()
+                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            }
 
             String summary = event.getSummary() != null ? event.getSummary().getValue() : "";
             String uid = event.getUid() != null ? event.getUid().getValue() : "";
             String description = event.getDescription() != null ? event.getDescription().getValue() : "";
+
+            // Ignorar bloqueos de disponibilidad de Airbnb (Not available)
+            if (summary.toLowerCase().contains("not available")) {
+                System.out.println("⏭ Evento ignorado (bloqueo de disponibilidad): " + summary);
+                continue;
+            }
 
             boolean exists = reservationRepository
                     .findByReservationCode(uid)
@@ -62,6 +79,13 @@ public class ICalImportService {
                 String roomNumber = null;
 
                 if (!description.isEmpty()) {
+                    // ✅ Reemplazar \n literales por saltos de línea reales
+                    description = description
+                            .replace("\\n", "\n")
+                            .replace("\\r", "\n")
+                            .replace("\r\n", "\n")
+                            .replace("\r", "\n");
+
                     for (String line : description.split("\n")) {
                         if (line.startsWith("Room:")) {
                             roomName = line.replace("Room:", "").trim();
@@ -105,17 +129,14 @@ public class ICalImportService {
                 newReservation.setName(summary.isEmpty() ? "External OTA Reservation" : summary);
                 newReservation.setReservationCode(uid);
                 newReservation.setStatus("EXTERNAL");
-
                 newReservation.setCantPeople(guests);
                 newReservation.setPayment(payment);
                 newReservation.setRoom(room);
                 newReservation.setRoomNumber(roomNumber);
-
                 newReservation.setQuantityReserved(1);
 
                 reservationRepository.save(newReservation);
 
-                // ✅ Guardar ReservationRoom si hay habitación asignada
                 if (room != null) {
                     ReservationRoom rr = new ReservationRoom();
                     rr.setReservation(newReservation);
@@ -141,7 +162,7 @@ public class ICalImportService {
     @Scheduled(fixedRate = 1800000) // Cada 30 minutos
     public void scheduledImport() {
         try {
-            importFromUrl("https://1e6e-138-219-14-103.ngrok-free.app/api/ical/expedia.ics");
+            importFromUrl("https://6151-138-219-14-97.ngrok-free.app/api/ical/airbnb.ics");
         } catch (Exception e) {
             e.printStackTrace();
         }

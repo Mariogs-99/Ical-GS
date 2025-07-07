@@ -19,15 +19,15 @@ public class AirbnbIcalMockController {
                 PRODID:-//Airbnb Test//EN
                 CALSCALE:GREGORIAN
                 BEGIN:VEVENT
-                DTSTART:20250715T160000Z
-                DTEND:20250719T160000Z
+                DTSTART;TZID=UTC:20250715T160000Z
+                DTEND;TZID=UTC:20250719T160000Z
                 SUMMARY:Mario Escobar
                 UID:airbnb_ABC123XYZ
                 DESCRIPTION:Room: Habitacion Individual\\nGuests: 2\\nTotal: $320.50\\nRoomNumber: 102-B
                 END:VEVENT
                 BEGIN:VEVENT
-                DTSTART:20250722T160000Z
-                DTEND:20250724T160000Z
+                DTSTART;TZID=UTC:20250722T160000Z
+                DTEND;TZID=UTC:20250724T160000Z
                 SUMMARY:Claudia Martinez
                 UID:airbnb_DEF456UVW
                 DESCRIPTION:Room: Habitacion Matrimonial\\nGuests: 3\\nTotal: $450.75\\nRoomNumber: 205-C
