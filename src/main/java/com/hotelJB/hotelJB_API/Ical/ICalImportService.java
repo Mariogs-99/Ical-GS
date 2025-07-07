@@ -34,20 +34,23 @@ public class ICalImportService {
     @Autowired
     private ReservationRoomRepository reservationRoomRepository;
 
-    public void importFromUrl(String icalUrl) throws Exception {
-        InputStream inputStream = new URL(icalUrl).openStream();
+    @Autowired
+    private OtaIcalConfigService otaIcalConfigService;
 
+    public void importFromUrl(String icalUrl, String otaName) throws Exception {
+        System.out.println("🌐 Importando OTA [" + otaName + "] desde URL: " + icalUrl);
+
+        InputStream inputStream = new URL(icalUrl).openStream();
         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
 
         var calendar = Biweekly.parse(reader).first();
 
         if (calendar == null) {
-            System.out.println("⚠ No se pudo leer el calendario iCal. Está vacío o es inválido.");
+            System.out.println("⚠ No se pudo leer el calendario iCal de " + otaName + ". Está vacío o es inválido.");
             return;
         }
 
         for (VEvent event : calendar.getEvents()) {
-
             LocalDate initDate = null;
             LocalDate finishDate = null;
 
@@ -82,7 +85,6 @@ public class ICalImportService {
                 String roomNumber = null;
 
                 if (!description.isEmpty()) {
-                    // ✅ Reemplazar \n literales por saltos de línea reales
                     description = description
                             .replace("\\n", "\n")
                             .replace("\\r", "\n")
@@ -120,7 +122,8 @@ public class ICalImportService {
                     room = roomRepository.findByNameEsIgnoreCaseTrim(roomName).orElse(null);
 
                     if (room != null) {
-                        System.out.println("✅ Room encontrado: id = " + room.getRoomId() + ", nombre = " + room.getNameEs());
+                        System.out.println("✅ Room encontrado: id = " + room.getRoomId() +
+                                ", nombre = " + room.getNameEs());
                     } else {
                         System.out.println("❌ Room NO encontrado para nombre: [" + roomName + "]");
                     }
@@ -162,21 +165,23 @@ public class ICalImportService {
         }
     }
 
-    @Autowired
-    private OtaIcalConfigService otaIcalConfigService;
-
     @Scheduled(fixedRate = 1800000) // Cada 30 minutos
     public void scheduledImport() {
         List<OtaIcalConfig> configs = otaIcalConfigService.getAllActiveConfigs();
 
         for (OtaIcalConfig config : configs) {
+            if (config.getIcalUrl() == null || config.getIcalUrl().isBlank()) {
+                System.out.println("⚠ OTA [" + config.getOtaName() + "] no tiene URL configurada. Se omite.");
+                continue;
+            }
+
             try {
-                importFromUrl(config.getIcalUrl());
+                importFromUrl(config.getIcalUrl(), config.getOtaName());
             } catch (Exception e) {
-                System.err.println("⚠ Error importando OTA " + config.getOtaName());
+                System.err.println("⚠ Error importando OTA " + config.getOtaName() +
+                        " → " + e.getMessage());
                 e.printStackTrace();
             }
         }
     }
-
 }
