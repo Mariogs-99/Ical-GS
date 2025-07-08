@@ -41,7 +41,7 @@ public class ICalImportService {
     public ImportResultDTO importFromUrl(String icalUrl, String otaName) throws Exception {
         ImportResultDTO resultDTO = new ImportResultDTO();
 
-        System.out.println("🌐 Importando OTA [" + otaName + "] desde URL: " + icalUrl);
+        System.out.println("Importando OTA [" + otaName + "] desde URL: " + icalUrl);
 
         InputStream inputStream = new URL(icalUrl).openStream();
         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
@@ -121,7 +121,7 @@ public class ICalImportService {
                 if (!roomName.equals("Sin habitación")) {
                     room = roomRepository.findByNameEsIgnoreCaseTrim(roomName).orElse(null);
                     if (room == null) {
-                        System.out.println("❌ Room NO encontrado para nombre: [" + roomName + "]");
+                        System.out.println("Room NO encontrado para nombre: [" + roomName + "]");
                         resultDTO.addRejected(uid, roomName, "Habitación no encontrada");
                         continue;
                     }
@@ -178,7 +178,7 @@ public class ICalImportService {
                             initDate + " → " + finishDate
                     );
 
-                    System.out.println("✅ Importada reserva UID: " + uid +
+                    System.out.println("Importada reserva UID: " + uid +
                             " Room: " + roomName +
                             " Guests: " + guests +
                             " Total: $" + payment +
@@ -205,7 +205,7 @@ public class ICalImportService {
 
             try {
                 ImportResultDTO result = importFromUrl(config.getIcalUrl(), config.getOtaName());
-                System.out.println("✅ Import result OTA [" + config.getOtaName() + "]:");
+                System.out.println("Import result OTA [" + config.getOtaName() + "]:");
                 System.out.println("    Importadas: " + result.getImportedReservations().size());
                 System.out.println("    Rechazadas: " + result.getRejectedReservations().size());
             } catch (Exception e) {

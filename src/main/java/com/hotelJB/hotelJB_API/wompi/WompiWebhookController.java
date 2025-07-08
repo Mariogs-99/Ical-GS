@@ -58,10 +58,18 @@ public class WompiWebhookController {
                                     reservationService.getByReservationCode(dto.getReservationCode());
 
                             if (reservationResponse != null) {
-                                dto.setStatus("ACTIVA");
+                                // 🚀 Aquí implementamos la corrección:
+                                if (dto.getInitDate().isAfter(java.time.LocalDate.now())) {
+                                    dto.setStatus("FUTURA");
+                                    System.out.println("✅ Reserva marcada como FUTURA.");
+                                } else {
+                                    dto.setStatus("ACTIVA");
+                                    System.out.println("✅ Reserva marcada como ACTIVA.");
+                                }
+
                                 reservationService.update(dto, reservationResponse.getReservationId());
 
-                                System.out.println("✅ Reserva actualizada a ACTIVA: " + dto.getReservationCode());
+                                System.out.println("✅ Reserva actualizada correctamente: " + dto.getReservationCode());
 
                                 // Enviar el correo tras confirmar reserva
                                 Reservation reservationEntity =
@@ -78,7 +86,8 @@ public class WompiWebhookController {
                                 );
 
                                 tempReservationService.deleteTempReservation(tempReference);
-                            } else {
+                            }
+                            else {
                                 System.out.println("❌ No se encontró reserva real con código: " + dto.getReservationCode());
                             }
                         }

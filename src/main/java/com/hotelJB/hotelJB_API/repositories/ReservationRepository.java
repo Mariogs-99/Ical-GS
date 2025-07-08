@@ -17,10 +17,11 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
     FROM ReservationRoom rr
     JOIN rr.reservation r
     WHERE rr.room = :room
-      AND r.status != 'FINALIZADA'
+      AND r.status IN ('ACTIVA', 'FUTURA')
       AND r.initDate <= :endDate
       AND r.finishDate >= :startDate
 """)
+
     int countReservedQuantityByRoomAndDates(
             @Param("room") Room room,
             @Param("startDate") LocalDate startDate,
