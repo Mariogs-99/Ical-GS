@@ -17,7 +17,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
     FROM ReservationRoom rr
     JOIN rr.reservation r
     WHERE rr.room = :room
-      AND r.status IN ('ACTIVA', 'FUTURA')
+      AND r.status IN ('ACTIVA', 'FUTURA', 'EXTERNAL')
       AND r.initDate <= :endDate
       AND r.finishDate >= :startDate
 """)
