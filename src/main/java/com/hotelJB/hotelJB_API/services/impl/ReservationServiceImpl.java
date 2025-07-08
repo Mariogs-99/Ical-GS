@@ -1,4 +1,7 @@
 package com.hotelJB.hotelJB_API.services.impl;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hotelJB.hotelJB_API.Dte.DteBuilderService;
+import com.hotelJB.hotelJB_API.Dte.dto.DteRequestDTO;
 import com.hotelJB.hotelJB_API.models.dtos.ReservationDTO;
 import com.hotelJB.hotelJB_API.models.dtos.ReservationRoomDTO;
 import com.hotelJB.hotelJB_API.models.entities.Reservation;
@@ -51,6 +54,10 @@ public class ReservationServiceImpl implements ReservationService {
     @Autowired
     private WompiService wompiService;
 
+    @Autowired
+
+    private DteBuilderService dteBuilderService;
+
 
 
 
@@ -86,14 +93,20 @@ public class ReservationServiceImpl implements ReservationService {
         // Guardar reserva inicial para obtener el ID
         reservationRepository.save(reservation);
 
-        // Generar el reservationCode tipo "Reserva-123"
+        // Generar reservationCode tipo "Reserva-123"
         String wompiReference = "Reserva-" + reservation.getReservationId();
         reservation.setReservationCode(wompiReference);
+
+        //Generar numero de control DTE
+        String numeroControl = "DTE-" + String.format("%014d", reservation.getReservationId());
+        reservation.setDteControlNumber(numeroControl);
+
+        // Guardar nuevamente para actualizar los campos
         reservationRepository.save(reservation);
 
         System.out.println("Referencia Wompi generada: " + wompiReference);
 
-        //! WebSocket notificación en tiempo real
+        // WebSocket notificación en tiempo real
         webSocketNotificationService.notifyNewReservation(reservation);
 
         // Guardar habitaciones reservadas
@@ -110,7 +123,30 @@ public class ReservationServiceImpl implements ReservationService {
             return resp;
         }).collect(Collectors.toList());
 
-        //? Generar HTML del correo
+        // -------------------------------
+        // GENERACIÓN DEL DTE (SOLO PRUEBA)
+        //  -------------------------------
+
+        DteRequestDTO dteRequest = dteBuilderService.buildDte(
+                reservation,
+                data.getRooms(),
+                numeroControl
+        );
+
+        // Convertir a JSON (solo prueba)
+        ObjectMapper mapper = new ObjectMapper();
+        String dteJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(dteRequest);
+
+        System.out.println("====================================");
+        System.out.println("DTE GENERADO (SOLO PRUEBA):");
+        System.out.println(dteJson);
+        System.out.println("====================================");
+
+        //  -------------------------------
+        //  Por ahora NO firmamos ni enviamos
+        //  -------------------------------
+
+        // ✅ Generar HTML del correo
         String htmlBody = String.format("""
 <!DOCTYPE html>
 <html lang="es">
@@ -248,13 +284,12 @@ public class ReservationServiceImpl implements ReservationService {
                 reservation.getReservationCode()
         );
 
-        // Enviar correo
-//        emailSenderService.sendMail(
-//                reservation.getEmail(),
-//                "Confirmación de Reserva - Hotel Jardines de las Marías",
-//                htmlBody
-//        );
-
+        // Enviar correo (si lo necesitas)
+        // emailSenderService.sendMail(
+        //         reservation.getEmail(),
+        //         "Confirmación de Reserva - Hotel Jardines de las Marías",
+        //         htmlBody
+        // );
 
         RoomShortResponse roomShortResponse = null;
         if (reservation.getRoom() != null) {
@@ -264,7 +299,6 @@ public class ReservationServiceImpl implements ReservationService {
             );
         }
 
-        // Devolver respuesta incluyendo el enlace de pago
         return new ReservationResponse(
                 reservation.getReservationId(),
                 reservation.getReservationCode(),
@@ -283,7 +317,6 @@ public class ReservationServiceImpl implements ReservationService {
                 reservation.getRoomNumber(),
                 reservation.getDteControlNumber(),
                 null
-
         );
     }
 
