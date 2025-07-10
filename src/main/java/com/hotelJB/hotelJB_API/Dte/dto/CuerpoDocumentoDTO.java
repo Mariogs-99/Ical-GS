@@ -1,22 +1,26 @@
 package com.hotelJB.hotelJB_API.Dte.dto;
 
-
-
-
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+
+import java.util.List;
 
 @Data
-@Getter
-@Setter
 public class CuerpoDocumentoDTO {
-    private String NumItem;
-    private String Descripcion;
-    private Integer Cantidad;
-    private Double PrecioUni;
-    private Double VentaGravada;
-    // más campos opcionales
-    // getters y setters
+    private int numItem;
+    private int tipoItem;
+    private String numeroDocumento;
+    private Double cantidad;
+    private String codigo;
+    private String codTributo;
+    private Integer uniMedida;
+    private String descripcion;
+    private Double precioUni;
+    private Double montoDescu;
+    private Double ventaNoSuj;
+    private Double ventaExenta;
+    private Double ventaGravada;
+    private List<TributoDTO> tributos;
+    private Double psv;
+    private Double noGravado;
+    private Double ivaItem;
 }
-

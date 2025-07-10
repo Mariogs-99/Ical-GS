@@ -3,17 +3,20 @@ package com.hotelJB.hotelJB_API.Dte.dto;
 
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+
 
 @Data
-@Getter
-@Setter
 public class ReceptorDTO {
-    private String TipoDocumento;
-    private String NumDocumento;
-    private String Nombre;
-    // más campos opcionales
-    // getters y setters
+    private String tipoDocumento;
+    private String numDocumento;
+    private String nombre;
+    private String codActividad;
+    private String descActividad;
+    private DireccionDTO direccion;
+    private String telefono;
+    private String correo;
+    private String nrc;
 }
+
+
 

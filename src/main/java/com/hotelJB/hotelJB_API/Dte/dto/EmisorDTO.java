@@ -1,17 +1,23 @@
 package com.hotelJB.hotelJB_API.Dte.dto;
 
-
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 @Data
-@Getter
-@Setter
 public class EmisorDTO {
-    private String Nit;
-    private String Nrc;
-    private String Nombre;
-    // más campos opcionales
-    // getters y setters
+    private String nit;
+    private String nrc;
+    private String nombre;
+    private String codActividad;
+    private String descActividad;
+    private String nombreComercial;
+    private String tipoEstablecimiento;
+    private DireccionDTO direccion;
+    private String telefono;
+    private String correo;
+    private String codEstableMH;
+    private String codEstable;
+    private String codPuntoVentaMH;
+    private String codPuntoVenta;
 }
+
+

@@ -40,11 +40,33 @@ public class DteAuthService {
         );
 
         Map<String, Object> body = response.getBody();
+
+        if (body == null) {
+            throw new RuntimeException("Respuesta vacía de autenticación.");
+        }
+
+        String status = (String) body.get("status");
+        if (!"OK".equalsIgnoreCase(status)) {
+            Object errorBody = body.get("body");
+            throw new RuntimeException("Error autenticando en MH: " + errorBody);
+        }
+
         Map<String, Object> innerBody = (Map<String, Object>) body.get("body");
         String token = (String) innerBody.get("token");
 
-        System.out.println("Token obtenido: " + token);
+        if (token == null) {
+            throw new RuntimeException("MH no devolvió token.");
+        }
+
+        // Limpiar "Bearer " si viene incluido
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
+        System.out.println("✅ Token limpio: " + token);
 
         return token;
     }
+
+
 }

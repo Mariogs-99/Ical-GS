@@ -1,7 +1,11 @@
 package com.hotelJB.hotelJB_API.services.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hotelJB.hotelJB_API.Dte.DteAuthService;
 import com.hotelJB.hotelJB_API.Dte.DteBuilderService;
+import com.hotelJB.hotelJB_API.Dte.DteSignerService;
+import com.hotelJB.hotelJB_API.Dte.DteTransmitterService;
 import com.hotelJB.hotelJB_API.Dte.dto.DteRequestDTO;
+import com.hotelJB.hotelJB_API.Dte.dto.DteResponse;
 import com.hotelJB.hotelJB_API.models.dtos.ReservationDTO;
 import com.hotelJB.hotelJB_API.models.dtos.ReservationRoomDTO;
 import com.hotelJB.hotelJB_API.models.entities.Reservation;
@@ -55,10 +59,16 @@ public class ReservationServiceImpl implements ReservationService {
     private WompiService wompiService;
 
     @Autowired
-
     private DteBuilderService dteBuilderService;
 
+    @Autowired
+    private DteSignerService dteSignerService;
 
+    @Autowired
+    private DteAuthService dteAuthService;
+
+    @Autowired
+    private DteTransmitterService dteTransmitterService;
 
 
     @Override
@@ -90,23 +100,23 @@ public class ReservationServiceImpl implements ReservationService {
             reservation.setRoom(room);
         }
 
-        // Guardar reserva inicial para obtener el ID
+        // Guardar la reserva para obtener el ID
         reservationRepository.save(reservation);
 
-        // Generar reservationCode tipo "Reserva-123"
+        // Generar reservationCode
         String wompiReference = "Reserva-" + reservation.getReservationId();
         reservation.setReservationCode(wompiReference);
 
-        //Generar numero de control DTE
+        // Generar número de control DTE
         String numeroControl = "DTE-" + String.format("%014d", reservation.getReservationId());
         reservation.setDteControlNumber(numeroControl);
 
-        // Guardar nuevamente para actualizar los campos
+        // Guardar cambios
         reservationRepository.save(reservation);
 
         System.out.println("Referencia Wompi generada: " + wompiReference);
 
-        // WebSocket notificación en tiempo real
+        // Notificar por websocket
         webSocketNotificationService.notifyNewReservation(reservation);
 
         // Guardar habitaciones reservadas
@@ -123,30 +133,61 @@ public class ReservationServiceImpl implements ReservationService {
             return resp;
         }).collect(Collectors.toList());
 
-        // -------------------------------
-        // GENERACIÓN DEL DTE (SOLO PRUEBA)
-        //  -------------------------------
+        // ------------------------------------------------
+        // FLUJO DTE
+        // ------------------------------------------------
 
+        // Builder adaptado
         DteRequestDTO dteRequest = dteBuilderService.buildDte(
                 reservation,
-                data.getRooms(),
-                numeroControl
+                data.getRooms()
         );
 
-        // Convertir a JSON (solo prueba)
+
         ObjectMapper mapper = new ObjectMapper();
         String dteJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(dteRequest);
 
         System.out.println("====================================");
-        System.out.println("DTE GENERADO (SOLO PRUEBA):");
+        System.out.println("DTE GENERADO:");
         System.out.println(dteJson);
         System.out.println("====================================");
 
-        //  -------------------------------
-        //  Por ahora NO firmamos ni enviamos
-        //  -------------------------------
+        try {
+            // 2. Firmar el DTE
+            String dteFirmado = dteSignerService.firmar(dteJson);
+            System.out.println("DTE FIRMADO:");
+            System.out.println(dteFirmado);
 
-        // ✅ Generar HTML del correo
+            // 3. Obtener token de MH
+            String token = dteAuthService.obtenerToken();
+
+            // 4. Enviar DTE firmado a MH
+            DteResponse dteResponse = dteTransmitterService.enviarDte(dteRequest, token);
+
+            System.out.println("RESPUESTA HACIENDA:");
+            System.out.println(dteResponse);
+
+            if (dteResponse.isExitoso()) {
+                System.out.println("✅ DTE RECIBIDO CORRECTAMENTE");
+                // Podrías guardar códigoGeneracion en reserva si quieres:
+                // reservation.setCodigoGeneracion(dteResponse.getCodigoGeneracion());
+                // reservationRepository.save(reservation);
+            } else {
+                System.out.println("❌ DTE RECHAZADO: " + dteResponse.getMensaje());
+                System.out.println("OBSERVACIONES: " + dteResponse.getObservaciones());
+            }
+
+        } catch (Exception e) {
+            System.out.println("⚠️ No se pudo procesar el DTE con Hacienda:");
+            e.printStackTrace();
+            // Aquí puedes notificar al admin o guardar log, etc.
+        }
+
+
+        // ------------------------------------------------
+        // ENVÍO DE CORREO
+        // ------------------------------------------------
+
         String htmlBody = String.format("""
 <!DOCTYPE html>
 <html lang="es">
@@ -230,9 +271,6 @@ public class ReservationServiceImpl implements ReservationService {
       color: #2E7D32;
       font-weight: bold;
     }
-    .icon {
-      margin-right: 6px;
-    }
     .social-icons {
       margin-top: 10px;
     }
@@ -284,7 +322,7 @@ public class ReservationServiceImpl implements ReservationService {
                 reservation.getReservationCode()
         );
 
-        // Enviar correo (si lo necesitas)
+        // Enviar email si quieres
         // emailSenderService.sendMail(
         //         reservation.getEmail(),
         //         "Confirmación de Reserva - Hotel Jardines de las Marías",
@@ -319,6 +357,7 @@ public class ReservationServiceImpl implements ReservationService {
                 null
         );
     }
+
 
 
 

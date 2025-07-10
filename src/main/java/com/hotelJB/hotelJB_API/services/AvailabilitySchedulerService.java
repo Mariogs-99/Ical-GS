@@ -23,7 +23,7 @@ public class AvailabilitySchedulerService {
         this.reservationRepository = reservationRepository;
     }
 
-    // ⏰ Ejecuta todos los días a las 00:00
+    // Ejecuta todos los días a las 00:00
     @Scheduled(cron = "0 0 0 * * *") // Se ejecuta todos los días a la medianoche
     @Transactional
     public void updateRoomAvailability() {
