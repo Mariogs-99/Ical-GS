@@ -4,6 +4,7 @@ import com.hotelJB.hotelJB_API.Dte.DteAuthService;
 import com.hotelJB.hotelJB_API.Dte.DteBuilderService;
 import com.hotelJB.hotelJB_API.Dte.DteSignerService;
 import com.hotelJB.hotelJB_API.Dte.DteTransmitterService;
+import com.hotelJB.hotelJB_API.Dte.dto.DteBuilderResult;
 import com.hotelJB.hotelJB_API.Dte.dto.DteRequestDTO;
 import com.hotelJB.hotelJB_API.Dte.dto.DteResponse;
 import com.hotelJB.hotelJB_API.models.dtos.ReservationDTO;
@@ -25,6 +26,12 @@ import com.hotelJB.hotelJB_API.wompi.WompiService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JREmptyDataSource;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -138,10 +145,10 @@ public class ReservationServiceImpl implements ReservationService {
         // ------------------------------------------------
 
         // Builder adaptado
-        DteRequestDTO dteRequest = dteBuilderService.buildDte(
-                reservation,
-                data.getRooms()
-        );
+        DteBuilderResult result = dteBuilderService.buildDte(reservation, data.getRooms());
+        DteRequestDTO dteRequest = result.getDteRequest();
+        Map<String, Object> jasperParams = result.getJasperParams();
+
 
 
         ObjectMapper mapper = new ObjectMapper();
@@ -182,6 +189,28 @@ public class ReservationServiceImpl implements ReservationService {
             e.printStackTrace();
             // Aquí puedes notificar al admin o guardar log, etc.
         }
+
+        //! Se construye el JasperReport PDF
+        try {
+            // Compilar plantilla
+            JasperReport jasperReport = JasperCompileManager.compileReport("src/main/resources/reports/DTEFactura.jrxml");
+
+            // Llenar el reporte
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, jasperParams, new JREmptyDataSource());
+
+            // Exportar a PDF (en bytes, por ejemplo)
+            byte[] pdfBytes = JasperExportManager.exportReportToPdf(jasperPrint);
+
+            // Puedes guardarlo en disco si quieres:
+            JasperExportManager.exportReportToPdfFile(jasperPrint, "DTEFactura_" + reservation.getReservationId() + ".pdf");
+
+            System.out.println("✅ PDF DTE generado correctamente.");
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.out.println("❌ Error generando el PDF DTE.");
+        }
+
 
 
         // ------------------------------------------------

@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport
+        xmlns="http://jasperreports.sourceforge.net/jasperreports"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+        name="DTEFactura"
+        pageWidth="595"
+        pageHeight="842"
+        columnWidth="555"
+        leftMargin="20"
+        rightMargin="20"
+        topMargin="20"
+        bottomMargin="20"
+        uuid="e0d8f0a7-ff25-414d-bf95-ff347a5fa923">
+
+    <!-- Parámetros -->
+    <parameter name="emisorNombre" class="java.lang.String"/>
+    <parameter name="emisorNit" class="java.lang.String"/>
+    <parameter name="emisorNrc" class="java.lang.String"/>
+    <parameter name="emisorDireccion" class="java.lang.String"/>
+    <parameter name="emisorTelefono" class="java.lang.String"/>
+    <parameter name="emisorCorreo" class="java.lang.String"/>
+
+    <parameter name="clienteNombre" class="java.lang.String"/>
+    <parameter name="clienteDocumento" class="java.lang.String"/>
+    <parameter name="clienteTelefono" class="java.lang.String"/>
+    <parameter name="clienteCorreo" class="java.lang.String"/>
+    <parameter name="fechaEmision" class="java.lang.String"/>
+    <parameter name="horaEmision" class="java.lang.String"/>
+
+    <parameter name="descripcionItem" class="java.lang.String"/>
+    <parameter name="cantidadItem" class="java.lang.String"/>
+    <parameter name="precioItem" class="java.lang.String"/>
+    <parameter name="subtotalItem" class="java.lang.String"/>
+
+    <parameter name="totalGravado" class="java.lang.String"/>
+    <parameter name="totalIva" class="java.lang.String"/>
+    <parameter name="totalPagar" class="java.lang.String"/>
+
+    <parameter name="codigoGeneracion" class="java.lang.String"/>
+    <parameter name="observaciones" class="java.lang.String"/>
+
+    <detail>
+        <band height="700">
+
+            <!-- Título -->
+            <textField>
+                <reportElement x="0" y="0" width="555" height="24"/>
+                <textElement textAlignment="Center">
+                    <font size="16" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["FACTURA ELECTRÓNICA - DTE"]]></textFieldExpression>
+            </textField>
+
+            <line>
+                <reportElement x="0" y="28" width="555" height="1"/>
+            </line>
+
+            <!-- Emisor -->
+            <textField>
+                <reportElement x="0" y="35" width="555" height="15"/>
+                <textElement>
+                    <font size="10" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{emisorNombre}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="50" width="555" height="12"/>
+                <textElement>
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA["NIT: " + $P{emisorNit} + " | NRC: " + $P{emisorNrc}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="62" width="555" height="12"/>
+                <textElement>
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{emisorDireccion}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="74" width="555" height="12"/>
+                <textElement>
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Tel: " + $P{emisorTelefono} + " | Correo: " + $P{emisorCorreo}]]></textFieldExpression>
+            </textField>
+
+            <line>
+                <reportElement x="0" y="90" width="555" height="1"/>
+            </line>
+
+            <!-- Cliente -->
+            <textField>
+                <reportElement x="0" y="98" width="555" height="12"/>
+                <textElement>
+                    <font size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["CLIENTE: " + $P{clienteNombre}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="110" width="555" height="12"/>
+                <textElement>
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Documento: " + $P{clienteDocumento}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="122" width="555" height="12"/>
+                <textElement>
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Teléfono: " + $P{clienteTelefono}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="134" width="555" height="12"/>
+                <textElement>
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Correo: " + $P{clienteCorreo}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="146" width="555" height="12"/>
+                <textElement>
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Fecha emisión: " + $P{fechaEmision} + " " + $P{horaEmision}]]></textFieldExpression>
+            </textField>
+
+            <line>
+                <reportElement x="0" y="162" width="555" height="1"/>
+            </line>
+
+            <!-- Ítem -->
+            <textField>
+                <reportElement x="0" y="170" width="360" height="12"/>
+                <textElement>
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{descripcionItem}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="360" y="170" width="50" height="12"/>
+                <textElement textAlignment="Right">
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{cantidadItem}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="410" y="170" width="70" height="12"/>
+                <textElement textAlignment="Right">
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA["$" + $P{precioItem}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="480" y="170" width="75" height="12"/>
+                <textElement textAlignment="Right">
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA["$" + $P{subtotalItem}]]></textFieldExpression>
+            </textField>
+
+            <line>
+                <reportElement x="0" y="185" width="555" height="1"/>
+            </line>
+
+            <!-- Totales -->
+            <textField>
+                <reportElement x="300" y="195" width="255" height="12"/>
+                <textElement textAlignment="Right">
+                    <font size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Total Gravado: $" + $P{totalGravado}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="300" y="207" width="255" height="12"/>
+                <textElement textAlignment="Right">
+                    <font size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["IVA: $" + $P{totalIva}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="300" y="219" width="255" height="12"/>
+                <textElement textAlignment="Right">
+                    <font size="10" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Total a Pagar: $" + $P{totalPagar}]]></textFieldExpression>
+            </textField>
+
+            <line>
+                <reportElement x="0" y="235" width="555" height="1"/>
+            </line>
+
+            <!-- Código DTE y Observaciones -->
+            <textField>
+                <reportElement x="0" y="242" width="555" height="12"/>
+                <textElement>
+                    <font size="8" isItalic="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Cód. Generación DTE: " + $P{codigoGeneracion}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="0" y="255" width="555" height="12"/>
+                <textElement>
+                    <font size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{observaciones}]]></textFieldExpression>
+            </textField>
+
+        </band>
+    </detail>
+</jasperReport>

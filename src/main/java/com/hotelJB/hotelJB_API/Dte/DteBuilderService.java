@@ -15,9 +15,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.Normalizer;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class DteBuilderService {
@@ -28,7 +26,7 @@ public class DteBuilderService {
     @Autowired
     private DteCorrelativoService correlativoService;
 
-    public DteRequestDTO buildDte(Reservation reservation, List<ReservationRoomDTO> rooms) {
+    public DteBuilderResult buildDte(Reservation reservation, List<ReservationRoomDTO> rooms) {
 
         DteRequestDTO dte = new DteRequestDTO();
 
@@ -41,8 +39,10 @@ public class DteBuilderService {
         identificacion.setTipoDte("01");
 
         String numeroControl = generarNumeroControl();
+        String codigoGeneracion = UUID.randomUUID().toString().toUpperCase();
+
         identificacion.setNumeroControl(numeroControl);
-        identificacion.setCodigoGeneracion(UUID.randomUUID().toString().toUpperCase());
+        identificacion.setCodigoGeneracion(codigoGeneracion);
         identificacion.setTipoModelo(1);
         identificacion.setTipoOperacion(1);
         identificacion.setTipoMoneda("USD");
@@ -69,7 +69,7 @@ public class DteBuilderService {
         emisor.setNrc("1748340");
         emisor.setNombre(cleanText("INFO LOGIC"));
         emisor.setCodActividad("62020");
-        emisor.setDescActividad(cleanText("CONSULTORÍAS Y GESTIÓN DE SERVICIOS INFORMÁTICOS"));
+        emisor.setDescActividad(cleanText("CONSULTORIAS Y GESTION DE SERVICIOS INFORMATICOS"));
         emisor.setNombreComercial(cleanText("INFORMATICA Y LOGISTICA, SOCIEDAD ANONIMA DE CAPITAL VARIABLE"));
         emisor.setTipoEstablecimiento("01");
 
@@ -94,7 +94,6 @@ public class DteBuilderService {
         ReceptorDTO receptor = new ReceptorDTO();
         receptor.setTipoDocumento("13");
         receptor.setNumDocumento("00425287-9");
-
         receptor.setNombre(
                 reservation.getName() != null && !reservation.getName().trim().isEmpty()
                         ? cleanText(reservation.getName().trim())
@@ -221,13 +220,10 @@ public class DteBuilderService {
         PagoDTO pago = new PagoDTO();
         pago.setCodigo("03");
         pago.setMontoPago(totalPagar.doubleValue());
-        pago.setReferencia(null);
-        pago.setPlazo(null);
-        pago.setPeriodo(null);
         pagos.add(pago);
         resumen.setPagos(pagos);
-
         resumen.setNumPagoElectronico(null);
+
         dte.setResumen(resumen);
 
         // ============================
@@ -243,7 +239,37 @@ public class DteBuilderService {
 
         dte.setExtension(extension);
 
-        return dte;
+        // ============================
+        // Construir parámetros Jasper
+        // ============================
+        Map<String, Object> params = new HashMap<>();
+        params.put("emisorNombre", emisor.getNombre());
+        params.put("emisorNit", emisor.getNit());
+        params.put("emisorNrc", emisor.getNrc());
+        params.put("emisorDireccion", emisor.getDireccion().getComplemento());
+        params.put("emisorTelefono", emisor.getTelefono());
+        params.put("emisorCorreo", emisor.getCorreo());
+
+        params.put("clienteNombre", receptor.getNombre());
+        params.put("clienteDocumento", receptor.getNumDocumento());
+        params.put("clienteTelefono", receptor.getTelefono() != null ? receptor.getTelefono() : "");
+        params.put("clienteCorreo", receptor.getCorreo() != null ? receptor.getCorreo() : "");
+        params.put("fechaEmision", identificacion.getFecEmi());
+        params.put("horaEmision", identificacion.getHorEmi());
+
+        params.put("descripcionItem", item.getDescripcion());
+        params.put("cantidadItem", String.valueOf(item.getCantidad().intValue()));
+        params.put("precioItem", precioUnitBruto.toPlainString());
+        params.put("subtotalItem", ventaGravadaTotal.toPlainString());
+
+        params.put("totalGravado", ventaGravadaTotal.toPlainString());
+        params.put("totalIva", totalIva.toPlainString());
+        params.put("totalPagar", totalPagar.toPlainString());
+
+        params.put("codigoGeneracion", identificacion.getCodigoGeneracion());
+        params.put("observaciones", extension.getObservaciones());
+
+        return new DteBuilderResult(dte, params);
     }
 
     private String generarNumeroControl() {
