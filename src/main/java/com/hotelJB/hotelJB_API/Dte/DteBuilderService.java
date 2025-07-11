@@ -1,5 +1,6 @@
 package com.hotelJB.hotelJB_API.Dte;
 
+import com.hotelJB.hotelJB_API.Dte.conf.DteCorrelativoService;
 import com.hotelJB.hotelJB_API.Dte.dto.*;
 import com.hotelJB.hotelJB_API.models.dtos.ReservationRoomDTO;
 import com.hotelJB.hotelJB_API.models.entities.Reservation;
@@ -24,8 +25,8 @@ public class DteBuilderService {
     @Autowired
     private RoomRepository roomRepository;
 
-    // Simulador de correlativo secuencial
-    private static long correlativo = 1;
+    @Autowired
+    private DteCorrelativoService correlativoService;
 
     public DteRequestDTO buildDte(Reservation reservation, List<ReservationRoomDTO> rooms) {
 
@@ -55,7 +56,6 @@ public class DteBuilderService {
 
         dte.setIdentificacion(identificacion);
 
-        // CAMPOS OBLIGATORIOS AUNQUE NULL
         dte.setDocumentoRelacionado(null);
         dte.setOtrosDocumentos(null);
         dte.setVentaTercero(null);
@@ -127,80 +127,100 @@ public class DteBuilderService {
         dte.setReceptor(receptor);
 
         // ============================
-        // CUERPO DOCUMENTO
+        // CUERPO DOCUMENTO Y CALCULOS
         // ============================
-        List<CuerpoDocumentoDTO> items = new ArrayList<>();
-        double total = 0.0;
-        int itemIndex = 1;
 
         long nights = Math.max(1, reservation.getFinishDate().toEpochDay() - reservation.getInitDate().toEpochDay());
+
+        BigDecimal totalBruto = BigDecimal.ZERO;
+        int totalRoomsQty = 0;
 
         for (ReservationRoomDTO roomDto : rooms) {
             Room room = roomRepository.findById(roomDto.getRoomId())
                     .orElseThrow(() -> new CustomException(ErrorType.ENTITY_NOT_FOUND, "Room"));
 
-            double price = round(room.getPrice());
+            BigDecimal price = BigDecimal.valueOf(room.getPrice());
             int totalNights = (int) nights;
-            int quantity = roomDto.getQuantity() * totalNights;
-            double monto = round(price * quantity);
-            double ivaItem = round(monto * 0.13);
+            int cantidad = roomDto.getQuantity() * totalNights;
 
-            CuerpoDocumentoDTO item = new CuerpoDocumentoDTO();
-            item.setNumItem(itemIndex++);
-            item.setTipoItem(1);
-            item.setNumeroDocumento(null);
-            item.setCantidad((double) quantity);
-            item.setCodigo("2-333");
-            item.setCodTributo(null);
-            item.setUniMedida(59);
-            item.setDescripcion(cleanText(room.getNameEs()) + " - " + totalNights + " noches");
-            item.setPrecioUni(price);
-            item.setMontoDescu(0.0);
-            item.setVentaNoSuj(0.0);
-            item.setVentaExenta(0.0);
-            item.setVentaGravada(monto);
-            item.setTributos(null);
-            item.setPsv(monto);
-            item.setNoGravado(0.0);
-            item.setIvaItem(ivaItem);
-            items.add(item);
-            total += monto;
+            BigDecimal subtotalRoom = price.multiply(BigDecimal.valueOf(cantidad));
+            subtotalRoom = round2(subtotalRoom);
+
+            totalBruto = totalBruto.add(subtotalRoom);
+            totalRoomsQty += cantidad;
         }
+
+        // CINEMARK LOGIC
+        BigDecimal totalIva = round2(
+                totalBruto.multiply(new BigDecimal("13"))
+                        .divide(new BigDecimal("113"), 2, RoundingMode.HALF_UP)
+        );
+
+        BigDecimal ventaGravadaTotal = totalBruto;
+        BigDecimal totalPagar = totalBruto;
+
+        BigDecimal precioUnitBruto = round2(
+                totalBruto.divide(BigDecimal.valueOf(totalRoomsQty), 2, RoundingMode.HALF_UP)
+        );
+
+        BigDecimal ivaUnit = round2(
+                precioUnitBruto.multiply(new BigDecimal("13"))
+                        .divide(new BigDecimal("113"), 2, RoundingMode.HALF_UP)
+        );
+
+        // Crear único ítem
+        List<CuerpoDocumentoDTO> items = new ArrayList<>();
+        CuerpoDocumentoDTO item = new CuerpoDocumentoDTO();
+        item.setNumItem(1);
+        item.setTipoItem(1);
+        item.setNumeroDocumento(null);
+        item.setCantidad((double) totalRoomsQty);
+        item.setCodigo("HAB001");
+        item.setCodTributo(null);
+        item.setUniMedida(3);
+        item.setDescripcion(cleanText("Habitación(es) reservadas - " + nights + " noches"));
+        item.setPrecioUni(precioUnitBruto.doubleValue());
+        item.setMontoDescu(0.0);
+        item.setVentaNoSuj(0.0);
+        item.setVentaExenta(0.0);
+        item.setVentaGravada(ventaGravadaTotal.doubleValue());
+        item.setTributos(null);
+        item.setPsv(0.0);
+        item.setNoGravado(0.0);
+        item.setIvaItem(ivaUnit.multiply(BigDecimal.valueOf(totalRoomsQty)).doubleValue());
+        items.add(item);
+
         dte.setCuerpoDocumento(items);
 
         // ============================
         // RESUMEN
         // ============================
-        double totalRounded = round(total);
-        double iva = round(total * 0.13);
-        double totalPagar = round(total + iva);
-
         ResumenDTO resumen = new ResumenDTO();
         resumen.setTotalNoSuj(0.0);
         resumen.setTotalExenta(0.0);
-        resumen.setTotalGravada(totalRounded);
-        resumen.setSubTotalVentas(totalRounded);
+        resumen.setTotalGravada(ventaGravadaTotal.doubleValue());
+        resumen.setSubTotalVentas(ventaGravadaTotal.doubleValue());
         resumen.setDescuNoSuj(0.0);
         resumen.setDescuExenta(0.0);
         resumen.setDescuGravada(0.0);
         resumen.setPorcentajeDescuento(0.0);
         resumen.setTotalDescu(0.0);
         resumen.setTributos(null);
-        resumen.setSubTotal(totalRounded);
+        resumen.setSubTotal(ventaGravadaTotal.doubleValue());
         resumen.setIvaRete1(0.0);
         resumen.setReteRenta(0.0);
-        resumen.setMontoTotalOperacion(totalPagar);
+        resumen.setMontoTotalOperacion(ventaGravadaTotal.doubleValue());
         resumen.setTotalNoGravado(0.0);
-        resumen.setTotalPagar(totalPagar);
-        resumen.setTotalLetras(cleanText(convertNumberToLetras(totalPagar)));
-        resumen.setTotalIva(iva);
+        resumen.setTotalPagar(totalPagar.doubleValue());
+        resumen.setTotalLetras(cleanText(convertNumberToLetras(totalPagar.doubleValue())));
+        resumen.setTotalIva(totalIva.doubleValue());
         resumen.setSaldoFavor(0.0);
         resumen.setCondicionOperacion(1);
 
         List<PagoDTO> pagos = new ArrayList<>();
         PagoDTO pago = new PagoDTO();
         pago.setCodigo("03");
-        pago.setMontoPago(totalPagar);
+        pago.setMontoPago(totalPagar.doubleValue());
         pago.setReferencia(null);
         pago.setPlazo(null);
         pago.setPeriodo(null);
@@ -226,24 +246,20 @@ public class DteBuilderService {
         return dte;
     }
 
-    /**
-     * Genera número de control con correlativo de 12 dígitos
-     */
-    private synchronized String generarNumeroControl() {
-        String establecimiento = "S006";
-        String puntoVenta = "M201";
-        String correlativoStr = String.format("%012d", correlativo++);
-        return String.format("DTE-01-%s%s-%s", establecimiento, puntoVenta, correlativoStr);
+    private String generarNumeroControl() {
+        long correlativo = correlativoService.nextCorrelativo("01", "S006", "M201");
+        String correlativoStr = String.format("%015d", correlativo);
+        return String.format("DTE-01-S006M201-%s", correlativoStr);
     }
 
-    private double round(double value) {
-        return new BigDecimal(value).setScale(2, RoundingMode.HALF_UP).doubleValue();
+    private BigDecimal round2(BigDecimal value) {
+        return value.setScale(2, RoundingMode.HALF_UP);
     }
 
     private String convertNumberToLetras(double value) {
         long parteEntera = (long) value;
         int centavos = (int) Math.round((value - parteEntera) * 100);
-        return String.format("%d dólares con %02d/100", parteEntera, centavos);
+        return String.format("%d dolares con %02d/100", parteEntera, centavos);
     }
 
     private String cleanText(String text) {
