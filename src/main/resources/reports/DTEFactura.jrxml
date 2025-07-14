@@ -14,6 +14,7 @@
         uuid="e0d8f0a7-ff25-414d-bf95-ff347a5fa923">
 
     <!-- Parámetros -->
+    <parameter name="logoImage" class="java.lang.String"/>
     <parameter name="emisorNombre" class="java.lang.String"/>
     <parameter name="emisorNit" class="java.lang.String"/>
     <parameter name="emisorNrc" class="java.lang.String"/>
@@ -43,9 +44,15 @@
     <detail>
         <band height="700">
 
+            <!-- Logo -->
+            <image>
+                <reportElement x="0" y="0" width="150" height="50"/>
+                <imageExpression><![CDATA[$P{logoImage}]]></imageExpression>
+            </image>
+
             <!-- Título -->
             <textField>
-                <reportElement x="0" y="0" width="555" height="24"/>
+                <reportElement x="160" y="10" width="380" height="30"/>
                 <textElement textAlignment="Center">
                     <font size="16" isBold="true"/>
                 </textElement>
@@ -53,33 +60,33 @@
             </textField>
 
             <line>
-                <reportElement x="0" y="28" width="555" height="1"/>
+                <reportElement x="0" y="60" width="555" height="1"/>
             </line>
 
             <!-- Emisor -->
             <textField>
-                <reportElement x="0" y="35" width="555" height="15"/>
+                <reportElement x="0" y="70" width="555" height="15"/>
                 <textElement>
                     <font size="10" isBold="true"/>
                 </textElement>
                 <textFieldExpression><![CDATA[$P{emisorNombre}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="0" y="50" width="555" height="12"/>
+                <reportElement x="0" y="85" width="555" height="12"/>
                 <textElement>
                     <font size="9"/>
                 </textElement>
                 <textFieldExpression><![CDATA["NIT: " + $P{emisorNit} + " | NRC: " + $P{emisorNrc}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="0" y="62" width="555" height="12"/>
+                <reportElement x="0" y="97" width="555" height="12"/>
                 <textElement>
                     <font size="9"/>
                 </textElement>
                 <textFieldExpression><![CDATA[$P{emisorDireccion}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="0" y="74" width="555" height="12"/>
+                <reportElement x="0" y="109" width="555" height="12"/>
                 <textElement>
                     <font size="9"/>
                 </textElement>
@@ -87,40 +94,40 @@
             </textField>
 
             <line>
-                <reportElement x="0" y="90" width="555" height="1"/>
+                <reportElement x="0" y="125" width="555" height="1"/>
             </line>
 
             <!-- Cliente -->
             <textField>
-                <reportElement x="0" y="98" width="555" height="12"/>
+                <reportElement x="0" y="135" width="555" height="12"/>
                 <textElement>
                     <font size="9" isBold="true"/>
                 </textElement>
                 <textFieldExpression><![CDATA["CLIENTE: " + $P{clienteNombre}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="0" y="110" width="555" height="12"/>
+                <reportElement x="0" y="147" width="555" height="12"/>
                 <textElement>
                     <font size="9"/>
                 </textElement>
                 <textFieldExpression><![CDATA["Documento: " + $P{clienteDocumento}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="0" y="122" width="555" height="12"/>
+                <reportElement x="0" y="159" width="555" height="12"/>
                 <textElement>
                     <font size="9"/>
                 </textElement>
                 <textFieldExpression><![CDATA["Teléfono: " + $P{clienteTelefono}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="0" y="134" width="555" height="12"/>
+                <reportElement x="0" y="171" width="555" height="12"/>
                 <textElement>
                     <font size="9"/>
                 </textElement>
                 <textFieldExpression><![CDATA["Correo: " + $P{clienteCorreo}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="0" y="146" width="555" height="12"/>
+                <reportElement x="0" y="183" width="555" height="12"/>
                 <textElement>
                     <font size="9"/>
                 </textElement>
@@ -128,33 +135,33 @@
             </textField>
 
             <line>
-                <reportElement x="0" y="162" width="555" height="1"/>
+                <reportElement x="0" y="200" width="555" height="1"/>
             </line>
 
             <!-- Ítem -->
             <textField>
-                <reportElement x="0" y="170" width="360" height="12"/>
+                <reportElement x="0" y="210" width="350" height="12"/>
                 <textElement>
                     <font size="9"/>
                 </textElement>
                 <textFieldExpression><![CDATA[$P{descripcionItem}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="360" y="170" width="50" height="12"/>
+                <reportElement x="350" y="210" width="60" height="12"/>
                 <textElement textAlignment="Right">
                     <font size="9"/>
                 </textElement>
                 <textFieldExpression><![CDATA[$P{cantidadItem}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="410" y="170" width="70" height="12"/>
+                <reportElement x="410" y="210" width="70" height="12"/>
                 <textElement textAlignment="Right">
                     <font size="9"/>
                 </textElement>
                 <textFieldExpression><![CDATA["$" + $P{precioItem}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="480" y="170" width="75" height="12"/>
+                <reportElement x="480" y="210" width="75" height="12"/>
                 <textElement textAlignment="Right">
                     <font size="9"/>
                 </textElement>
@@ -162,26 +169,26 @@
             </textField>
 
             <line>
-                <reportElement x="0" y="185" width="555" height="1"/>
+                <reportElement x="0" y="225" width="555" height="1"/>
             </line>
 
             <!-- Totales -->
             <textField>
-                <reportElement x="300" y="195" width="255" height="12"/>
+                <reportElement x="300" y="235" width="255" height="12"/>
                 <textElement textAlignment="Right">
                     <font size="9" isBold="true"/>
                 </textElement>
                 <textFieldExpression><![CDATA["Total Gravado: $" + $P{totalGravado}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="300" y="207" width="255" height="12"/>
+                <reportElement x="300" y="247" width="255" height="12"/>
                 <textElement textAlignment="Right">
                     <font size="9" isBold="true"/>
                 </textElement>
                 <textFieldExpression><![CDATA["IVA: $" + $P{totalIva}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="300" y="219" width="255" height="12"/>
+                <reportElement x="300" y="259" width="255" height="12"/>
                 <textElement textAlignment="Right">
                     <font size="10" isBold="true"/>
                 </textElement>
@@ -189,12 +196,12 @@
             </textField>
 
             <line>
-                <reportElement x="0" y="235" width="555" height="1"/>
+                <reportElement x="0" y="275" width="555" height="1"/>
             </line>
 
             <!-- Código DTE y Observaciones -->
             <textField>
-                <reportElement x="0" y="242" width="555" height="12"/>
+                <reportElement x="0" y="285" width="555" height="12"/>
                 <textElement>
                     <font size="8" isItalic="true"/>
                 </textElement>
@@ -202,7 +209,7 @@
             </textField>
 
             <textField>
-                <reportElement x="0" y="255" width="555" height="12"/>
+                <reportElement x="0" y="297" width="555" height="12"/>
                 <textElement>
                     <font size="8"/>
                 </textElement>
