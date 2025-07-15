@@ -19,7 +19,7 @@ public class CuerpoDocumentoDTO {
     private Double ventaNoSuj;
     private Double ventaExenta;
     private Double ventaGravada;
-    private List<TributoDTO> tributos;
+    private List<String> tributos;
     private Double psv;
     private Double noGravado;
     private Double ivaItem;

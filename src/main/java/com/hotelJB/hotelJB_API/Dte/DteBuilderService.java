@@ -106,18 +106,17 @@ public class DteBuilderService {
         dirReceptor.setComplemento("SIN DIRECCION");
         receptor.setDireccion(dirReceptor);
 
-        if (reservation.getPhone() != null &&
-                reservation.getPhone().trim().matches("\\d{8,}")) {
-            receptor.setTelefono(reservation.getPhone().trim());
-        } else {
-            receptor.setTelefono(null);
-        }
+        receptor.setTelefono(
+                reservation.getPhone() != null && reservation.getPhone().matches("\\d{8,}")
+                        ? reservation.getPhone()
+                        : null
+        );
 
-        if (reservation.getEmail() != null && !reservation.getEmail().trim().isEmpty()) {
-            receptor.setCorreo(reservation.getEmail().trim());
-        } else {
-            receptor.setCorreo(null);
-        }
+        receptor.setCorreo(
+                reservation.getEmail() != null && !reservation.getEmail().trim().isEmpty()
+                        ? reservation.getEmail().trim()
+                        : null
+        );
 
         receptor.setCodActividad(null);
         receptor.setDescActividad(null);
@@ -131,7 +130,7 @@ public class DteBuilderService {
 
         long nights = Math.max(1, reservation.getFinishDate().toEpochDay() - reservation.getInitDate().toEpochDay());
 
-        BigDecimal totalBruto = BigDecimal.ZERO;
+        BigDecimal totalNeto = BigDecimal.ZERO;
         int totalRoomsQty = 0;
 
         for (ReservationRoomDTO roomDto : rooms) {
@@ -139,35 +138,44 @@ public class DteBuilderService {
                     .orElseThrow(() -> new CustomException(ErrorType.ENTITY_NOT_FOUND, "Room"));
 
             BigDecimal price = BigDecimal.valueOf(room.getPrice());
-            int totalNights = (int) nights;
-            int cantidad = roomDto.getQuantity() * totalNights;
+            int cantidad = roomDto.getQuantity() * (int) nights;
 
             BigDecimal subtotalRoom = price.multiply(BigDecimal.valueOf(cantidad));
             subtotalRoom = round2(subtotalRoom);
 
-            totalBruto = totalBruto.add(subtotalRoom);
+            totalNeto = totalNeto.add(subtotalRoom);
             totalRoomsQty += cantidad;
         }
 
-        // CINEMARK LOGIC
-        BigDecimal totalIva = round2(
-                totalBruto.multiply(new BigDecimal("13"))
-                        .divide(new BigDecimal("113"), 2, RoundingMode.HALF_UP)
-        );
+        // IVA sobre neto
+        BigDecimal iva = round2(totalNeto.multiply(new BigDecimal("0.13")));
 
-        BigDecimal ventaGravadaTotal = totalBruto;
-        BigDecimal totalPagar = totalBruto;
+        // Total Bruto (neto + iva)
+        BigDecimal totalBruto = totalNeto.add(iva);
 
-        BigDecimal precioUnitBruto = round2(
-                totalBruto.divide(BigDecimal.valueOf(totalRoomsQty), 2, RoundingMode.HALF_UP)
-        );
+        // Tributo (5%) sobre neto
+        BigDecimal tributo = round2(totalNeto.multiply(new BigDecimal("0.05")));
 
-        BigDecimal ivaUnit = round2(
-                precioUnitBruto.multiply(new BigDecimal("13"))
-                        .divide(new BigDecimal("113"), 2, RoundingMode.HALF_UP)
-        );
+        // Total a pagar
+        BigDecimal totalPagar = totalBruto.add(tributo);
 
-        // Crear único ítem
+        // Precio unitario neto
+        BigDecimal precioUnitNeto = totalRoomsQty > 0
+                ? round2(totalNeto.divide(BigDecimal.valueOf(totalRoomsQty), 2, RoundingMode.HALF_UP))
+                : BigDecimal.ZERO;
+
+        // IVA unitario
+        BigDecimal ivaUnit = round2(precioUnitNeto.multiply(new BigDecimal("0.13")));
+
+        // Precio unitario bruto (neto + iva)
+        BigDecimal precioUnitBruto = precioUnitNeto.add(ivaUnit);
+
+        // IVA total del ítem
+        BigDecimal ivaTotalItem = ivaUnit.multiply(BigDecimal.valueOf(totalRoomsQty));
+
+        // ============================
+        // CUERPO DOCUMENTO
+        // ============================
         List<CuerpoDocumentoDTO> items = new ArrayList<>();
         CuerpoDocumentoDTO item = new CuerpoDocumentoDTO();
         item.setNumItem(1);
@@ -182,11 +190,11 @@ public class DteBuilderService {
         item.setMontoDescu(0.0);
         item.setVentaNoSuj(0.0);
         item.setVentaExenta(0.0);
-        item.setVentaGravada(ventaGravadaTotal.doubleValue());
-        item.setTributos(null);
+        item.setVentaGravada(totalBruto.doubleValue());
+        item.setTributos(Collections.singletonList("59"));
         item.setPsv(0.0);
         item.setNoGravado(0.0);
-        item.setIvaItem(ivaUnit.multiply(BigDecimal.valueOf(totalRoomsQty)).doubleValue());
+        item.setIvaItem(ivaTotalItem.doubleValue());
         items.add(item);
 
         dte.setCuerpoDocumento(items);
@@ -197,28 +205,32 @@ public class DteBuilderService {
         ResumenDTO resumen = new ResumenDTO();
         resumen.setTotalNoSuj(0.0);
         resumen.setTotalExenta(0.0);
-        resumen.setTotalGravada(ventaGravadaTotal.doubleValue());
-        resumen.setSubTotalVentas(ventaGravadaTotal.doubleValue());
+        resumen.setTotalGravada(totalBruto.doubleValue());
+        resumen.setSubTotalVentas(totalBruto.doubleValue());
         resumen.setDescuNoSuj(0.0);
         resumen.setDescuExenta(0.0);
         resumen.setDescuGravada(0.0);
         resumen.setPorcentajeDescuento(0.0);
         resumen.setTotalDescu(0.0);
-        resumen.setTributos(null);
-        resumen.setSubTotal(ventaGravadaTotal.doubleValue());
+
+        resumen.setTributos(Collections.singletonList(
+                new TributoDTO("59", "Turismo: por alojamiento (5%)", tributo.doubleValue())
+        ));
+
+        resumen.setSubTotal(totalBruto.doubleValue());
         resumen.setIvaRete1(0.0);
         resumen.setReteRenta(0.0);
-        resumen.setMontoTotalOperacion(ventaGravadaTotal.doubleValue());
+        resumen.setMontoTotalOperacion(totalPagar.doubleValue());
         resumen.setTotalNoGravado(0.0);
         resumen.setTotalPagar(totalPagar.doubleValue());
         resumen.setTotalLetras(cleanText(convertNumberToLetras(totalPagar.doubleValue())));
-        resumen.setTotalIva(totalIva.doubleValue());
+        resumen.setTotalIva(iva.doubleValue());
         resumen.setSaldoFavor(0.0);
         resumen.setCondicionOperacion(1);
 
         List<PagoDTO> pagos = new ArrayList<>();
         PagoDTO pago = new PagoDTO();
-        pago.setCodigo("03");
+        pago.setCodigo("09");
         pago.setMontoPago(totalPagar.doubleValue());
         pagos.add(pago);
         resumen.setPagos(pagos);
@@ -240,7 +252,7 @@ public class DteBuilderService {
         dte.setExtension(extension);
 
         // ============================
-        // Construir parámetros Jasper
+        // PARAMS JASPER
         // ============================
         Map<String, Object> params = new HashMap<>();
         params.put("emisorNombre", emisor.getNombre());
@@ -259,15 +271,26 @@ public class DteBuilderService {
 
         params.put("descripcionItem", item.getDescripcion());
         params.put("cantidadItem", String.valueOf(item.getCantidad().intValue()));
-        params.put("precioItem", precioUnitBruto.toPlainString());
-        params.put("subtotalItem", ventaGravadaTotal.toPlainString());
 
-        params.put("totalGravado", ventaGravadaTotal.toPlainString());
-        params.put("totalIva", totalIva.toPlainString());
+        params.put("precioItem", precioUnitBruto.toPlainString());
+        params.put("subtotalItem", totalBruto.toPlainString());
+
+        params.put("precioUnitarioNeto", precioUnitNeto.toPlainString());
+        params.put("ivaUnitario", ivaUnit.toPlainString());
+        params.put("precioUnitarioBruto", precioUnitBruto.toPlainString());
+
+        params.put("totalNeto", totalNeto.toPlainString());
+        params.put("totalIva", iva.toPlainString());
+        params.put("totalTributo", tributo.toPlainString());
+        params.put("totalGravado", totalNeto.toPlainString());
+        params.put("subTotalVentas", totalNeto.toPlainString());
         params.put("totalPagar", totalPagar.toPlainString());
 
         params.put("codigoGeneracion", identificacion.getCodigoGeneracion());
         params.put("observaciones", extension.getObservaciones());
+        params.put("logoImage", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLo8t9NH1j1eo_tGo70lM2OcYKY4mhwhntvA&s");
+
+
 
         return new DteBuilderResult(dte, params);
     }
