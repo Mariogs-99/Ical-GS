@@ -45,29 +45,28 @@ public class PayPalController {
         try {
             String orderId = dto.getPaypalOrderId();
 
-            // Verificar si ya fue capturada antes (opcional pero recomendable)
             if (paypalCaptureRepository.existsByPaypalOrderId(orderId)) {
                 return ResponseEntity.badRequest().body("⚠️ Esta orden ya fue capturada.");
             }
 
-            // Obtener detalles de la orden
             JsonNode orderDetails = payPalClient.getOrderDetails(orderId);
             String status = orderDetails.path("status").asText();
 
-            // Si está aprobada, capturamos; si está completada, continuamos
             if ("APPROVED".equalsIgnoreCase(status)) {
                 payPalClient.captureOrder(orderId);
             } else if (!"COMPLETED".equalsIgnoreCase(status)) {
                 return ResponseEntity.status(422).body("La orden no está en un estado válido. Estado: " + status);
             }
 
-            // Guardar que ya se capturó la orden
             PaypalCapture capture = new PaypalCapture();
             capture.setPaypalOrderId(orderId);
             capture.setCapturedAt(LocalDateTime.now());
             paypalCaptureRepository.save(capture);
 
-            // Guardar la reserva y generar DTE
+            dto.setPaymentMethod("PAYPAL");
+
+
+            // Aquí se genera todo: reserva + DTE + PDF + correo
             ReservationResponse response = reservationService.save(dto);
 
             return ResponseEntity.ok(Map.of(
@@ -79,6 +78,7 @@ public class PayPalController {
             return ResponseEntity.status(500).body("❌ Error al procesar reserva y DTE: " + e.getMessage());
         }
     }
+
 
 
 

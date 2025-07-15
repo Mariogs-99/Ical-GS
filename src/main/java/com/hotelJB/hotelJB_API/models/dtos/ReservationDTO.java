@@ -15,6 +15,7 @@ public class ReservationDTO {
     private String email;
     private String phone;
     private float payment;
+    private String paymentMethod;
     private String roomNumber; // opcional
     private String status; // ACTIVA, FUTURA o FINALIZADA
     private List<ReservationRoomDTO> rooms;

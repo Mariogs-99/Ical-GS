@@ -33,6 +33,7 @@ import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JREmptyDataSource;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -190,26 +191,40 @@ public class ReservationServiceImpl implements ReservationService {
             // Aquí puedes notificar al admin o guardar log, etc.
         }
 
-        //! Se construye el JasperReport PDF
         try {
             // Compilar plantilla
-            JasperReport jasperReport = JasperCompileManager.compileReport("src/main/resources/reports/DTEFactura.jrxml");
+            JasperReport jasperReport = JasperCompileManager.compileReport(
+                    "src/main/resources/reports/DTEFactura.jrxml"
+            );
 
             // Llenar el reporte
-            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, jasperParams, new JREmptyDataSource());
+            JasperPrint jasperPrint = JasperFillManager.fillReport(
+                    jasperReport,
+                    jasperParams,
+                    new JREmptyDataSource()
+            );
 
-            // Exportar a PDF (en bytes, por ejemplo)
-            byte[] pdfBytes = JasperExportManager.exportReportToPdf(jasperPrint);
+            // Carpeta PDF en raíz del proyecto
+            String pdfDirectory = "PDF";
+            String pdfFileName = "DTEFactura_" + reservation.getReservationId() + ".pdf";
 
-            // Puedes guardarlo en disco si quieres:
-            JasperExportManager.exportReportToPdfFile(jasperPrint, "DTEFactura_" + reservation.getReservationId() + ".pdf");
+            File folder = new File(pdfDirectory);
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
 
-            System.out.println("✅ PDF DTE generado correctamente.");
+            String pdfPath = pdfDirectory + File.separator + pdfFileName;
+
+            // Exportar a archivo PDF
+            JasperExportManager.exportReportToPdfFile(jasperPrint, pdfPath);
+
+            System.out.println("✅ PDF DTE generado en: " + pdfPath);
 
         } catch (Exception ex) {
             ex.printStackTrace();
             System.out.println("❌ Error generando el PDF DTE.");
         }
+
 
 
 
@@ -351,12 +366,37 @@ public class ReservationServiceImpl implements ReservationService {
                 reservation.getReservationCode()
         );
 
-        // Enviar email si quieres
-        // emailSenderService.sendMail(
-        //         reservation.getEmail(),
-        //         "Confirmación de Reserva - Hotel Jardines de las Marías",
-        //         htmlBody
-        // );
+
+        try {
+            String pdfPath = "PDF" + File.separator + "DTEFactura_" + reservation.getReservationId() + ".pdf";
+
+            byte[] pdfBytes = java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(pdfPath));
+            String base64Pdf = Base64.getEncoder().encodeToString(pdfBytes);
+
+            emailSenderService.sendMailWithAttachment(
+                    reservation.getEmail(),
+                    "Confirmación de Reserva - Hotel Jardines de las Marías",
+                    htmlBody,
+                    base64Pdf,
+                    "DTEFactura_" + reservation.getReservationId() + ".pdf"
+            );
+
+//            emailSenderService.sendMailWithAttachment(
+//                    "escobar.mario@globalsolutionslt.com", // ← correo de prueba fijo
+//                    "Confirmación de Reserva - Hotel Jardines de las Marías",
+//                    htmlBody,
+//                    base64Pdf,
+//                    "DTEFactura_" + reservation.getReservationId() + ".pdf"
+//            );
+
+
+            System.out.println("✅ Correo enviado con PDF adjunto.");
+
+        } catch (Exception e) {
+            System.out.println("❌ Error enviando correo con PDF adjunto:");
+            e.printStackTrace();
+        }
+
 
         RoomShortResponse roomShortResponse = null;
         if (reservation.getRoom() != null) {

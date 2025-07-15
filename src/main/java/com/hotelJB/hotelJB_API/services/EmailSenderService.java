@@ -22,16 +22,33 @@ public class EmailSenderService {
     private String senderName;
 
     public void sendMail(String to, String subject, String htmlBody) {
+        sendMailWithAttachment(to, subject, htmlBody, null, null);
+    }
+
+    public void sendMailWithAttachment(String to, String subject, String htmlBody, String base64Attachment, String attachmentFileName) {
         try {
             OkHttpClient client = new OkHttpClient();
 
             MediaType mediaType = MediaType.parse("application/json");
 
-            // ✅ Escapar saltos de línea y comillas
             String escapedHtmlBody = htmlBody
                     .replace("\"", "\\\"")
                     .replace("\n", "")
                     .replace("\r", "");
+
+            String attachmentPart = "";
+
+            if (base64Attachment != null && attachmentFileName != null) {
+                attachmentPart = String.format("""
+                  ,"Attachments": [
+                    {
+                      "ContentType": "application/pdf",
+                      "Filename": "%s",
+                      "Base64Content": "%s"
+                    }
+                  ]
+                """, attachmentFileName, base64Attachment);
+            }
 
             String jsonBody = String.format("""
             {
@@ -50,6 +67,7 @@ public class EmailSenderService {
                   "Subject": "%s",
                   "TextPart": "%s",
                   "HTMLPart": "%s"
+                  %s
                 }
               ]
             }
@@ -60,7 +78,8 @@ public class EmailSenderService {
                     "Destinatario",
                     subject,
                     "Este es un mensaje alternativo en texto plano.",
-                    escapedHtmlBody
+                    escapedHtmlBody,
+                    attachmentPart
             );
 
             RequestBody body = RequestBody.create(mediaType, jsonBody);
@@ -94,5 +113,4 @@ public class EmailSenderService {
             throw new RuntimeException(e);
         }
     }
-
 }
