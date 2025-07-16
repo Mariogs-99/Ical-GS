@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Base64;
+import java.util.Map;
 
 @Service
 public class EmailSenderService {
@@ -22,10 +23,15 @@ public class EmailSenderService {
     private String senderName;
 
     public void sendMail(String to, String subject, String htmlBody) {
-        sendMailWithAttachment(to, subject, htmlBody, null, null);
+        sendMailWithMultipleAttachments(to, subject, htmlBody, null);
     }
 
-    public void sendMailWithAttachment(String to, String subject, String htmlBody, String base64Attachment, String attachmentFileName) {
+    public void sendMailWithMultipleAttachments(
+            String to,
+            String subject,
+            String htmlBody,
+            Map<String, String> attachmentsBase64
+    ) {
         try {
             OkHttpClient client = new OkHttpClient();
 
@@ -37,41 +43,61 @@ public class EmailSenderService {
                     .replace("\r", "");
 
             String attachmentPart = "";
+            if (attachmentsBase64 != null && !attachmentsBase64.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(",\"Attachments\":[");
 
-            if (base64Attachment != null && attachmentFileName != null) {
-                attachmentPart = String.format("""
-                  ,"Attachments": [
-                    {
-                      "ContentType": "application/pdf",
-                      "Filename": "%s",
-                      "Base64Content": "%s"
+                int i = 0;
+                for (Map.Entry<String, String> entry : attachmentsBase64.entrySet()) {
+                    String filename = entry.getKey();
+                    String content = entry.getValue();
+
+                    // Detect content-type by file extension
+                    String contentType = "application/octet-stream";
+                    if (filename.endsWith(".pdf")) {
+                        contentType = "application/pdf";
+                    } else if (filename.endsWith(".json")) {
+                        contentType = "application/json";
                     }
-                  ]
-                """, attachmentFileName, base64Attachment);
+
+                    sb.append(String.format("""
+                        {
+                          "ContentType": "%s",
+                          "Filename": "%s",
+                          "Base64Content": "%s"
+                        }
+                        """, contentType, filename, content));
+
+                    if (++i < attachmentsBase64.size()) {
+                        sb.append(",");
+                    }
+                }
+                sb.append("]");
+                attachmentPart = sb.toString();
             }
 
             String jsonBody = String.format("""
-            {
-              "Messages": [
                 {
-                  "From": {
-                    "Email": "%s",
-                    "Name": "%s"
-                  },
-                  "To": [
+                  "Messages": [
                     {
-                      "Email": "%s",
-                      "Name": "%s"
+                      "From": {
+                        "Email": "%s",
+                        "Name": "%s"
+                      },
+                      "To": [
+                        {
+                          "Email": "%s",
+                          "Name": "%s"
+                        }
+                      ],
+                      "Subject": "%s",
+                      "TextPart": "%s",
+                      "HTMLPart": "%s"
+                      %s
                     }
-                  ],
-                  "Subject": "%s",
-                  "TextPart": "%s",
-                  "HTMLPart": "%s"
-                  %s
+                  ]
                 }
-              ]
-            }
-            """,
+                """,
                     senderEmail,
                     senderName,
                     to,

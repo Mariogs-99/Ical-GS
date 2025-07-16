@@ -36,6 +36,7 @@ import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JREmptyDataSource;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -405,13 +406,23 @@ public class ReservationServiceImpl implements ReservationService {
             byte[] pdfBytes = java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(pdfPath));
             String base64Pdf = Base64.getEncoder().encodeToString(pdfBytes);
 
-            emailSenderService.sendMailWithAttachment(
+            // Codificar JSON
+            String base64Json = Base64.getEncoder()
+                    .encodeToString(dteJson.getBytes(StandardCharsets.UTF_8));
+
+            // Armar mapa de adjuntos
+            Map<String, String> attachments = new HashMap<>();
+            attachments.put("DTEFactura_" + reservation.getReservationId() + ".pdf", base64Pdf);
+            attachments.put("DTEFactura_" + reservation.getReservationId() + ".json", base64Json);
+
+            // Enviar correo con PDF + JSON
+            emailSenderService.sendMailWithMultipleAttachments(
                     reservation.getEmail(),
                     "Confirmación de Reserva - Hotel Jardines de las Marías",
                     htmlBody,
-                    base64Pdf,
-                    "DTEFactura_" + reservation.getReservationId() + ".pdf"
+                    attachments
             );
+
 
 //            emailSenderService.sendMailWithAttachment(
 //                    "escobar.mario@globalsolutionslt.com", // ← correo de prueba fijo
@@ -1207,26 +1218,34 @@ public class ReservationServiceImpl implements ReservationService {
             String pdfPath = pdfDirectory + File.separator + pdfFileName;
             JasperExportManager.exportReportToPdfFile(jasperPrint, pdfPath);
 
-            // Enviar correo
-            String htmlBody = buildReservationEmailBody(reservation);
+            // Preparar adjuntos
             byte[] pdfBytes = java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(pdfPath));
             String base64Pdf = Base64.getEncoder().encodeToString(pdfBytes);
 
-            emailSenderService.sendMailWithAttachment(
+            String base64Json = Base64.getEncoder()
+                    .encodeToString(dteJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+            Map<String, String> attachments = new HashMap<>();
+            attachments.put(pdfFileName, base64Pdf);
+            attachments.put("DTEFactura_" + reservationId + ".json", base64Json);
+
+            // Enviar correo
+            String htmlBody = buildReservationEmailBody(reservation);
+            emailSenderService.sendMailWithMultipleAttachments(
                     reservation.getEmail(),
                     "Confirmación de Reserva - Hotel Jardines de las Marías",
                     htmlBody,
-                    base64Pdf,
-                    pdfFileName
+                    attachments
             );
 
-            System.out.println("✅ DTE generado y correo enviado.");
+            System.out.println("✅ DTE generado y correo enviado con PDF y JSON adjuntos.");
 
         } catch (Exception e) {
             System.out.println("❌ Error generando o enviando DTE:");
             e.printStackTrace();
         }
     }
+
 
 
 
