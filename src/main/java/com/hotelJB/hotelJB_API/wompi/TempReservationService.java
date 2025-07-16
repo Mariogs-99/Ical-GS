@@ -105,15 +105,17 @@ public class TempReservationService {
             throw new RuntimeException("No se encontró reserva definitiva con código: " + dto.getReservationCode());
         }
 
-        // Si quisieras actualizar algo (p.ej. status), puedes hacerlo así:
-        /*
-        existingReservation.setStatus("ACTIVA");
-        reservationService.update(...);
-        */
+        // Actualiza estado a ACTIVA
+        dto.setStatus("ACTIVA");
+        reservationService.update(dto, existingReservation.getReservationId());
+
+        // Generar el DTE y enviar correo
+        reservationService.generateAndSendDte(existingReservation.getReservationId());
 
         deleteTempReservation(tempReference);
 
         System.out.println("✅ Reserva definitiva confirmada con código: " + existingReservation.getReservationCode());
         return existingReservation;
     }
+
 }

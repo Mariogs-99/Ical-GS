@@ -58,4 +58,6 @@ public interface ReservationService {
     ReservationResponse saveWithStatus(ReservationDTO data, String status) throws Exception;
 
     String buildReservationEmailBody(Reservation reservation);
+
+    void generateAndSendDte(int reservationId);
 }

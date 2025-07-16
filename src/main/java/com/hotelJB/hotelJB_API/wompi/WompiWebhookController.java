@@ -58,7 +58,6 @@ public class WompiWebhookController {
                                     reservationService.getByReservationCode(dto.getReservationCode());
 
                             if (reservationResponse != null) {
-                                // 🚀 Aquí implementamos la corrección:
                                 if (dto.getInitDate().isAfter(java.time.LocalDate.now())) {
                                     dto.setStatus("FUTURA");
                                     System.out.println("✅ Reserva marcada como FUTURA.");
@@ -67,27 +66,17 @@ public class WompiWebhookController {
                                     System.out.println("✅ Reserva marcada como ACTIVA.");
                                 }
 
+                                // ✅ Actualizar reserva
                                 reservationService.update(dto, reservationResponse.getReservationId());
 
                                 System.out.println("✅ Reserva actualizada correctamente: " + dto.getReservationCode());
 
-                                // Enviar el correo tras confirmar reserva
-                                Reservation reservationEntity =
-                                        reservationService.findById(reservationResponse.getReservationId())
-                                                .orElseThrow(() -> new RuntimeException("Reserva no encontrada."));
-
-                                String htmlBody =
-                                        reservationService.buildReservationEmailBody(reservationEntity);
-
-                                emailSenderService.sendMail(
-                                        reservationEntity.getEmail(),
-                                        "Confirmación de Reserva - Hotel Jardines de las Marías",
-                                        htmlBody
-                                );
+                                // ✅ Generar DTE y enviar correo con PDF adjunto
+                                reservationService.generateAndSendDte(reservationResponse.getReservationId());
 
                                 tempReservationService.deleteTempReservation(tempReference);
-                            }
-                            else {
+
+                            } else {
                                 System.out.println("❌ No se encontró reserva real con código: " + dto.getReservationCode());
                             }
                         }
@@ -111,6 +100,7 @@ public class WompiWebhookController {
 
         return ResponseEntity.ok("ok");
     }
+
 
 
 

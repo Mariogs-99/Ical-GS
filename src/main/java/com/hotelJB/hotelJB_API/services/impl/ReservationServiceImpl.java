@@ -1139,4 +1139,95 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
 
+    @Override
+    public void generateAndSendDte(int reservationId) {
+        try {
+            Reservation reservation = reservationRepository.findById(reservationId)
+                    .orElseThrow(() -> new RuntimeException("Reserva no encontrada."));
+
+            List<ReservationRoomDTO> roomDTOs = reservationRoomRepository
+                    .findByReservation_ReservationId(reservationId)
+                    .stream()
+                    .map(rr -> new ReservationRoomDTO(
+                            rr.getRoom().getRoomId(),
+                            rr.getQuantity(),
+                            rr.getAssignedRoomNumber()
+                    ))
+                    .collect(Collectors.toList());
+
+            // Build DTE
+            DteBuilderResult result = dteBuilderService.buildDte(reservation, roomDTOs);
+            DteRequestDTO dteRequest = result.getDteRequest();
+            Map<String, Object> jasperParams = result.getJasperParams();
+
+            ObjectMapper mapper = new ObjectMapper();
+            String dteJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(dteRequest);
+
+            // Firmar
+            String dteFirmado = dteSignerService.firmar(dteJson);
+
+            // Token
+            String token = dteAuthService.obtenerToken();
+
+            // Transmitir
+            DteResponse dteResponse = dteTransmitterService.enviarDte(dteRequest, token);
+
+            // Guardar DTE
+            Dte dteEntity = new Dte();
+            dteEntity.setReservationCode(reservation.getReservationCode());
+            dteEntity.setNumeroControl(dteRequest.getIdentificacion().getNumeroControl());
+            dteEntity.setCodigoGeneracion(dteRequest.getIdentificacion().getCodigoGeneracion());
+            dteEntity.setTipoDte(dteRequest.getIdentificacion().getTipoDte());
+            dteEntity.setEstado(dteResponse.getEstado());
+            dteEntity.setFechaGeneracion(java.time.LocalDateTime.now());
+            dteEntity.setDteJson(dteJson);
+            dteEntity.setRespuestaHaciendaJson(
+                    mapper.writerWithDefaultPrettyPrinter().writeValueAsString(dteResponse)
+            );
+            dteRepository.save(dteEntity);
+
+            // Generar PDF
+            JasperReport jasperReport = JasperCompileManager.compileReport(
+                    "src/main/resources/reports/DTEFactura.jrxml"
+            );
+            JasperPrint jasperPrint = JasperFillManager.fillReport(
+                    jasperReport,
+                    jasperParams,
+                    new JREmptyDataSource()
+            );
+
+            String pdfDirectory = "PDF";
+            String pdfFileName = "DTEFactura_" + reservationId + ".pdf";
+
+            File folder = new File(pdfDirectory);
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            String pdfPath = pdfDirectory + File.separator + pdfFileName;
+            JasperExportManager.exportReportToPdfFile(jasperPrint, pdfPath);
+
+            // Enviar correo
+            String htmlBody = buildReservationEmailBody(reservation);
+            byte[] pdfBytes = java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(pdfPath));
+            String base64Pdf = Base64.getEncoder().encodeToString(pdfBytes);
+
+            emailSenderService.sendMailWithAttachment(
+                    reservation.getEmail(),
+                    "Confirmación de Reserva - Hotel Jardines de las Marías",
+                    htmlBody,
+                    base64Pdf,
+                    pdfFileName
+            );
+
+            System.out.println("✅ DTE generado y correo enviado.");
+
+        } catch (Exception e) {
+            System.out.println("❌ Error generando o enviando DTE:");
+            e.printStackTrace();
+        }
+    }
+
+
+
 }
