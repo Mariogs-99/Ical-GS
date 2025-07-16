@@ -7,6 +7,8 @@ import com.hotelJB.hotelJB_API.Dte.DteTransmitterService;
 import com.hotelJB.hotelJB_API.Dte.dto.DteBuilderResult;
 import com.hotelJB.hotelJB_API.Dte.dto.DteRequestDTO;
 import com.hotelJB.hotelJB_API.Dte.dto.DteResponse;
+import com.hotelJB.hotelJB_API.Dte.general.Dte;
+import com.hotelJB.hotelJB_API.Dte.general.DteRepository;
 import com.hotelJB.hotelJB_API.models.dtos.ReservationDTO;
 import com.hotelJB.hotelJB_API.models.dtos.ReservationRoomDTO;
 import com.hotelJB.hotelJB_API.models.entities.Reservation;
@@ -77,6 +79,10 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Autowired
     private DteTransmitterService dteTransmitterService;
+
+    @Autowired
+    private DteRepository dteRepository;
+
 
 
     @Override
@@ -169,9 +175,35 @@ public class ReservationServiceImpl implements ReservationService {
             // 3. Obtener token de MH
             String token = dteAuthService.obtenerToken();
 
-            // 4. Enviar DTE firmado a MH
+            // Enviar DTE
             DteResponse dteResponse = dteTransmitterService.enviarDte(dteRequest, token);
 
+            System.out.println("RESPUESTA HACIENDA:");
+            System.out.println(dteResponse);
+
+            if (dteResponse.isExitoso()) {
+                System.out.println("✅ DTE RECIBIDO CORRECTAMENTE");
+            } else {
+                System.out.println("❌ DTE RECHAZADO: " + dteResponse.getMensaje());
+                System.out.println("OBSERVACIONES: " + dteResponse.getObservaciones());
+            }
+
+            // Guardar DTE en base de datos
+            Dte dteEntity = new Dte();
+            dteEntity.setReservationCode(reservation.getReservationCode());
+            dteEntity.setNumeroControl(dteRequest.getIdentificacion().getNumeroControl());
+            dteEntity.setCodigoGeneracion(dteRequest.getIdentificacion().getCodigoGeneracion());
+            dteEntity.setTipoDte(dteRequest.getIdentificacion().getTipoDte());
+            dteEntity.setEstado(dteResponse.getEstado());
+            dteEntity.setFechaGeneracion(java.time.LocalDateTime.now());
+            dteEntity.setDteJson(dteJson);
+            dteEntity.setRespuestaHaciendaJson(
+                    new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(dteResponse)
+            );
+
+            dteRepository.save(dteEntity);
+
+            System.out.println("DTE guardado en base de datos.");
             System.out.println("RESPUESTA HACIENDA:");
             System.out.println(dteResponse);
 
