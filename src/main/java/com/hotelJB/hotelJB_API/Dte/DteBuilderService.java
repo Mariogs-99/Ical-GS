@@ -2,6 +2,7 @@ package com.hotelJB.hotelJB_API.Dte;
 
 import com.hotelJB.hotelJB_API.Dte.conf.DteCorrelativoService;
 import com.hotelJB.hotelJB_API.Dte.dto.*;
+import com.hotelJB.hotelJB_API.Dte.qr.QrCodeGenerator;
 import com.hotelJB.hotelJB_API.models.dtos.ReservationRoomDTO;
 import com.hotelJB.hotelJB_API.models.entities.Reservation;
 import com.hotelJB.hotelJB_API.models.entities.Room;
@@ -289,6 +290,39 @@ public class DteBuilderService {
         params.put("codigoGeneracion", identificacion.getCodigoGeneracion());
         params.put("observaciones", extension.getObservaciones());
         params.put("logoImage", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLo8t9NH1j1eo_tGo70lM2OcYKY4mhwhntvA&s");
+
+        // -----------------------------------
+        // Generar link del QR para consulta en Hacienda
+        // -----------------------------------
+        String ambiente = identificacion.getAmbiente();
+        String codGen = identificacion.getCodigoGeneracion();
+        String fechaEmi = identificacion.getFecEmi();
+
+        String qrUrl = String.format(
+                "https://admin.factura.gob.sv/consultaPublica?ambiente=%s&codGen=%s&fechaEmi=%s",
+                ambiente,
+                codGen,
+                fechaEmi
+        );
+
+        // Generar QR en base64 (150x150 píxeles)
+        String qrBase64 = QrCodeGenerator.generateQrBase64(qrUrl, 150, 150);
+
+        if (qrBase64 != null) {
+            // Convertir Base64 a bytes
+            byte[] qrBytes = java.util.Base64.getDecoder().decode(qrBase64);
+
+            // Convertir a InputStream
+            java.io.InputStream qrStream = new java.io.ByteArrayInputStream(qrBytes);
+
+            // Pasar el InputStream al parámetro Jasper
+            params.put("qrImageBase64", qrStream);
+        } else {
+            params.put("qrImageBase64", null);
+        }
+
+
+
 
 
 

@@ -58,4 +58,6 @@ dependencies {
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 	implementation 'net.sf.biweekly:biweekly:0.6.6'
 	implementation 'net.sf.jasperreports:jasperreports:6.17.0'
+	implementation 'com.google.zxing:core:3.5.1'
+	implementation 'com.google.zxing:javase:3.5.1'
 }
