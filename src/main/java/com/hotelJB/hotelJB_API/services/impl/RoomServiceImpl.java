@@ -270,5 +270,13 @@ public class RoomServiceImpl implements RoomService {
         return (totalQuantity - reserved) > 0;
     }
 
+    @Override
+    public String getRoomNameById(Long roomId) {
+        return roomRepository.findById(roomId.intValue())
+                .map(Room::getNameEs) // O Room::getNameEn si deseas el nombre en inglés
+                .orElse("Habitación");
+    }
+
+
 
 }

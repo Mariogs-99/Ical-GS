@@ -33,4 +33,5 @@ public interface RoomService {
 
     boolean isRoomAvailable(Integer roomId, LocalDate initDate, LocalDate finishDate);
 
+    String getRoomNameById(Long roomId);
 }
