@@ -16,4 +16,13 @@ public class CompanyServiceImpl implements CompanyService {
         return companyRepository.findFirstBy()
                 .orElseThrow(() -> new CustomException(ErrorType.ENTITY_NOT_FOUND, "Company"));
     }
+
+    //!Permite cambiar el estado si el hotel esta listo o no para emitir DTEs a hacienda
+    @Override
+    public Company updateDteEnabled(boolean enabled) {
+        Company company = getCompany();
+        company.setDteEnabled(enabled);
+        return companyRepository.save(company);
+    }
+
 }
