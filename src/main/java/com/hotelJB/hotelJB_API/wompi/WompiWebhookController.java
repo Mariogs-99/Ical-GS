@@ -1,5 +1,7 @@
 package com.hotelJB.hotelJB_API.wompi;
 
+import com.hotelJB.hotelJB_API.Dte.company.Company;
+import com.hotelJB.hotelJB_API.Dte.company.CompanyRepository;
 import com.hotelJB.hotelJB_API.models.dtos.ReservationDTO;
 import com.hotelJB.hotelJB_API.models.entities.Reservation;
 import com.hotelJB.hotelJB_API.models.responses.ReservationResponse;
@@ -33,6 +35,9 @@ public class WompiWebhookController {
     @Autowired
     private RoomService roomService;
 
+    @Autowired
+    private CompanyRepository companyRepository;
+
     private static final String RESULT_SUCCESS = "ExitosaAprobada";
 
     @PostMapping
@@ -47,82 +52,79 @@ public class WompiWebhookController {
             System.out.println("ReservationCode recibido: " + reservationCode);
             System.out.println("Resultado transacción: " + resultado);
 
-            if (reservationCode != null && resultado != null) {
-                if (RESULT_SUCCESS.equals(resultado)) {
+            if (reservationCode != null && RESULT_SUCCESS.equals(resultado)) {
+                ReservationResponse reservationResponse = reservationService.getByReservationCode(reservationCode);
 
-                    // Buscar reserva real
-                    ReservationResponse reservationResponse = reservationService.getByReservationCode(reservationCode);
+                if (reservationResponse != null) {
+                    Reservation reservationEntity = reservationService.findEntityById(reservationResponse.getReservationId());
+                    ReservationDTO dto = reservationService.toDto(reservationEntity);
 
-                    if (reservationResponse != null) {
-                        ReservationDTO dto = reservationService.generateAndSendDte(reservationResponse.getReservationId());
+                    // Actualizar estado
+                    reservationEntity.setStatus(dto.getInitDate().isAfter(java.time.LocalDate.now()) ? "FUTURA" : "ACTIVA");
+                    reservationService.saveEntity(reservationEntity);
 
-                        // Cambiar estado directamente en la entidad
-                        Reservation reservationEntity = reservationService.findEntityById(reservationResponse.getReservationId());
-                        if (dto.getInitDate().isAfter(java.time.LocalDate.now())) {
-                            reservationEntity.setStatus("FUTURA");
-                            // enum o "FUTURA"
-                        } else {
-                            reservationEntity.setStatus("ACTIVA");
-                            // enum o "ACTIVA"
-                        }
+                    // Consultar empresa
+                    Company company = companyRepository.findFirstBy().orElse(null);
 
-                        reservationService.saveEntity(reservationEntity);
-
-                        // WhatsApp
-                        try {
-                            String formattedInitDate = dto.getInitDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-                            String formattedFinishDate = dto.getFinishDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-
-                            Long roomId = dto.getRooms().get(0).getRoomId().longValue();
-                            String roomName = roomService.getRoomNameById(roomId);
-
-                            String message = String.format(
-                                    "📢 *Confirmación de Reserva - Jardines de las Marías*\n\n" +
-                                            "Hola %s 👋,\n\n" +
-                                            "¡Tu reserva ha sido confirmada exitosamente! 🎉\n\n" +
-                                            "🛏️ Habitación: %s\n" +
-                                            "🗓️ Fechas: %s al %s\n" +
-                                            "👥 Huéspedes: %d persona(s)\n" +
-                                            "🔖 Código de reserva: %s\n\n" +
-                                            "📍 Dirección: Km 7.5 Carretera Panorámica, San Salvador\n" +
-                                            "📞 Teléfono: +503 7012 3456\n\n" +
-                                            "¡Gracias por elegirnos! 🌿\n" +
-                                            "Nos vemos pronto 🌄",
-                                    dto.getName(), roomName, formattedInitDate, formattedFinishDate,
-                                    dto.getCantPeople(), dto.getReservationCode()
-                            );
-
-                            String rawPhone = dto.getPhone();
-                            String cleanedPhone = rawPhone.replaceAll("[^\\d+]", "");
-                            if (!cleanedPhone.startsWith("+")) {
-                                cleanedPhone = "+503" + cleanedPhone;
-                            }
-
-                            whatsappService.sendWhatsAppMessage(cleanedPhone, message);
-                            System.out.println("✅ WhatsApp enviado a " + dto.getPhone());
-                        } catch (Exception e) {
-                            System.out.println("❌ Error al enviar mensaje de WhatsApp: " + e.getMessage());
-                        }
-
+                    // Si DTE está habilitado: generar y enviar DTE (que ya incluye correo con adjunto)
+                    if (company != null && company.isDteEnabled()) {
+                        reservationService.generateAndSendDte(reservationEntity.getReservationId());
+                        System.out.println("DTE generado y correo enviado con adjunto.");
                     } else {
-                        System.out.println("❌ No se encontró reserva con código: " + reservationCode);
+                        // Si DTE está desactivado: enviar solo correo
+                        String htmlBody = reservationService.buildReservationEmailBody(dto);
+                        emailSenderService.sendMail(dto.getEmail(), "Confirmación de Reserva - Jardines de las Marías", htmlBody);
+                        System.out.println("Correo de reserva enviado sin DTE.");
+                    }
+
+                    // WhatsApp
+                    try {
+                        String formattedInitDate = dto.getInitDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                        String formattedFinishDate = dto.getFinishDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                        Long roomId = dto.getRooms().get(0).getRoomId().longValue();
+                        String roomName = roomService.getRoomNameById(roomId);
+
+                        String message = String.format(
+                                "📢 *Confirmación de Reserva - Jardines de las Marías*\n\n" +
+                                        "Hola %s 👋,\n\n" +
+                                        "¡Tu reserva ha sido confirmada exitosamente! 🎉\n\n" +
+                                        "🛏️ Habitación: %s\n" +
+                                        "🗓️ Fechas: %s al %s\n" +
+                                        "👥 Huéspedes: %d persona(s)\n" +
+                                        "🔖 Código de reserva: %s\n\n" +
+                                        "📍 Dirección: Km 7.5 Carretera Panorámica, San Salvador\n" +
+                                        "📞 Teléfono: +503 7012 3456\n\n" +
+                                        "¡Gracias por elegirnos! 🌿\n" +
+                                        "Nos vemos pronto 🌄",
+                                dto.getName(), roomName, formattedInitDate, formattedFinishDate,
+                                dto.getCantPeople(), dto.getReservationCode()
+                        );
+
+                        String rawPhone = dto.getPhone();
+                        String cleanedPhone = rawPhone.replaceAll("[^\\d+]", "");
+                        if (!cleanedPhone.startsWith("+")) {
+                            cleanedPhone = "+503" + cleanedPhone;
+                        }
+
+                        whatsappService.sendWhatsAppMessage(cleanedPhone, message);
+                        System.out.println("✅ WhatsApp enviado a " + dto.getPhone());
+                    } catch (Exception e) {
+                        System.out.println("❌ Error al enviar WhatsApp: " + e.getMessage());
                     }
 
                 } else {
-                    System.out.println("❌ Pago fallido o anulado.");
+                    System.out.println("❌ No se encontró la reserva con código: " + reservationCode);
                 }
+
             } else {
-                System.out.println("❌ ReservationCode inválido o no recibido.");
+                System.out.println("❌ Pago fallido, anulado o sin código.");
             }
 
         } catch (Exception e) {
-            System.out.println("🚨 Error procesando el webhook: " + e.getMessage());
+            System.out.println("🚨 Error procesando webhook de Wompi:");
             e.printStackTrace();
-            return ResponseEntity.ok("ok");
         }
 
         return ResponseEntity.ok("ok");
     }
-
-
 }

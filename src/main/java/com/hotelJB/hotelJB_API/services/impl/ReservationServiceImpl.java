@@ -38,6 +38,7 @@ import net.sf.jasperreports.engine.JREmptyDataSource;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -1282,6 +1283,162 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorType.ENTITY_NOT_FOUND, "Reserva no encontrada"));
     }
+
+
+    @Override
+    public ReservationDTO toDto(Reservation reservation) {
+        ReservationDTO dto = new ReservationDTO();
+        dto.setReservationCode(reservation.getReservationCode());
+        dto.setInitDate(reservation.getInitDate());
+        dto.setFinishDate(reservation.getFinishDate());
+        dto.setCantPeople(reservation.getCantPeople());
+        dto.setName(reservation.getName());
+        dto.setEmail(reservation.getEmail());
+        dto.setPhone(reservation.getPhone());
+        dto.setStatus(reservation.getStatus());
+        dto.setPayment((float) reservation.getPayment());
+
+        // Puedes omitir wantsDte si ya no lo usas por reserva
+
+        dto.setRooms(
+                reservationRoomRepository
+                        .findByReservation_ReservationId(reservation.getReservationId())
+                        .stream()
+                        .map(rr -> new ReservationRoomDTO(
+                                rr.getRoom().getRoomId(),
+                                rr.getQuantity(),
+                                rr.getAssignedRoomNumber()
+                        ))
+                        .collect(Collectors.toList())
+        );
+
+        return dto;
+    }
+
+
+    @Override
+    public String buildReservationEmailBody(ReservationDTO dto) {
+        return String.format("""
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: 'Helvetica Neue', 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 40px 20px;
+      color: #333333;
+    }
+    .container {
+      max-width: 650px;
+      background-color: #ffffff;
+      margin: auto;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .logo img {
+      height: 60px;
+    }
+    h2 {
+      font-size: 1.6rem;
+      color: #2E7D32;
+      text-align: center;
+      margin-bottom: 30px;
+      font-weight: 600;
+    }
+    .info-section {
+      border-top: 1px solid #eee;
+      border-bottom: 1px solid #eee;
+      padding: 20px 0;
+      margin-bottom: 30px;
+      font-size: 0.95rem;
+    }
+    .info-row {
+      margin: 10px 0;
+    }
+    .label {
+      font-weight: 600;
+      color: #555;
+      display: inline-block;
+      width: 160px;
+    }
+    .reservation-code {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #2E7D32;
+      font-weight: 600;
+      margin-top: 20px;
+    }
+    .footer {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #777;
+      margin-top: 40px;
+    }
+    .contact {
+      margin-top: 10px;
+      color: #555;
+      line-height: 1.6;
+    }
+    .social-icons {
+      margin-top: 15px;
+    }
+    .social-icons a {
+      margin: 0 8px;
+      text-decoration: none;
+      color: #2E7D32;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLo8t9NH1j1eo_tGo70lM2OcYKY4mhwhntvA&s" alt="Hotel Jardines de las Marías" />
+    </div>
+    <h2>¡Gracias por su reserva, %s!</h2>
+    <div class="info-section">
+      <div class="info-row"><span class="label">Fecha de entrada:</span> %s</div>
+      <div class="info-row"><span class="label">Fecha de salida:</span> %s</div>
+      <div class="info-row"><span class="label">Cantidad de personas:</span> %d</div>
+      <div class="info-row"><span class="label">Cantidad de habitaciones:</span> %d</div>
+    </div>
+    <div class="reservation-code">Código de Reserva: %s</div>
+    <div class="footer">
+      Este es un mensaje automático. Para más información o asistencia:
+      <div class="contact">
+        Hotel Jardines de las Marías<br/>
+        📞 2562-8891 | 📱 7890-5449<br/>
+        ✉️ jardindelasmariashotel@gmail.com<br/>
+        📍 2 Avenida sur #23, Barrio el Calvario, Suchitoto
+      </div>
+      <div class="social-icons">
+        <a href="https://www.facebook.com/hoteljardindelasmarias" target="_blank">Facebook</a>
+        <a href="https://www.instagram.com/hoteljardindelasmarias/" target="_blank">Instagram</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+""",
+                dto.getName(),
+                dto.getInitDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                dto.getFinishDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                dto.getCantPeople(),
+                dto.getRooms().size(),
+                dto.getReservationCode()
+        );
+    }
+
+
 
 
 

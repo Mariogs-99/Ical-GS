@@ -62,4 +62,8 @@ public interface ReservationService {
     ReservationDTO generateAndSendDte(int reservationId);
 
     Reservation findEntityById(Integer id);
+
+    ReservationDTO toDto(Reservation reservation);
+
+    String buildReservationEmailBody(ReservationDTO dto);
 }

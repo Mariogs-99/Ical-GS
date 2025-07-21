@@ -57,4 +57,8 @@ public class Company {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @Column(name = "dte_enabled")
+    private boolean dteEnabled = false;
+
 }
