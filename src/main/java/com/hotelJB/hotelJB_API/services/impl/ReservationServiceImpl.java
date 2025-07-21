@@ -1151,9 +1151,11 @@ public class ReservationServiceImpl implements ReservationService {
 
 
     @Override
-    public void generateAndSendDte(int reservationId) {
+    public ReservationDTO generateAndSendDte(int reservationId) {
+        Reservation reservation = null;
+
         try {
-            Reservation reservation = reservationRepository.findById(reservationId)
+            reservation = reservationRepository.findById(reservationId)
                     .orElseThrow(() -> new RuntimeException("Reserva no encontrada."));
 
             List<ReservationRoomDTO> roomDTOs = reservationRoomRepository
@@ -1244,6 +1246,41 @@ public class ReservationServiceImpl implements ReservationService {
             System.out.println("❌ Error generando o enviando DTE:");
             e.printStackTrace();
         }
+
+        // Asegúrate de que reservation no sea null antes de construir el DTO
+        if (reservation == null) return null;
+
+        ReservationDTO dto = new ReservationDTO();
+        dto.setReservationCode(reservation.getReservationCode());
+        dto.setName(reservation.getName());
+        dto.setEmail(reservation.getEmail());
+        dto.setPhone(reservation.getPhone());
+        dto.setInitDate(reservation.getInitDate());
+        dto.setFinishDate(reservation.getFinishDate());
+        dto.setCantPeople(reservation.getCantPeople());
+        dto.setStatus(reservation.getStatus());
+
+        List<ReservationRoomDTO> roomDTOs = reservationRoomRepository
+                .findByReservation_ReservationId(reservation.getReservationId())
+                .stream()
+                .map(rr -> new ReservationRoomDTO(
+                        rr.getRoom().getRoomId(),
+                        rr.getQuantity(),
+                        rr.getAssignedRoomNumber()
+                ))
+                .collect(Collectors.toList());
+
+        dto.setRooms(roomDTOs);
+
+        return dto;
+    }
+
+
+
+    @Override
+    public Reservation findEntityById(Integer id) {
+        return reservationRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorType.ENTITY_NOT_FOUND, "Reserva no encontrada"));
     }
 
 
