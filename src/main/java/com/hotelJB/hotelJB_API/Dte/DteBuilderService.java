@@ -1,5 +1,7 @@
 package com.hotelJB.hotelJB_API.Dte;
 
+import com.hotelJB.hotelJB_API.Dte.company.Company;
+import com.hotelJB.hotelJB_API.Dte.company.CompanyService;
 import com.hotelJB.hotelJB_API.Dte.conf.DteCorrelativoService;
 import com.hotelJB.hotelJB_API.Dte.dto.*;
 import com.hotelJB.hotelJB_API.Dte.qr.QrCodeGenerator;
@@ -26,6 +28,10 @@ public class DteBuilderService {
 
     @Autowired
     private DteCorrelativoService correlativoService;
+
+    @Autowired
+    private CompanyService companyService;
+
 
     public DteBuilderResult buildDte(Reservation reservation, List<ReservationRoomDTO> rooms) {
 
@@ -62,32 +68,32 @@ public class DteBuilderService {
         dte.setVentaTercero(null);
         dte.setApendice(null);
 
-        // ============================
-        // EMISOR
-        // ============================
+        Company company = companyService.getCompany();
+
         EmisorDTO emisor = new EmisorDTO();
-        emisor.setNit("06140308061025");
-        emisor.setNrc("1748340");
-        emisor.setNombre(cleanText("INFO LOGIC"));
-        emisor.setCodActividad("62020");
-        emisor.setDescActividad(cleanText("CONSULTORIAS Y GESTION DE SERVICIOS INFORMATICOS"));
-        emisor.setNombreComercial(cleanText("INFORMATICA Y LOGISTICA, SOCIEDAD ANONIMA DE CAPITAL VARIABLE"));
-        emisor.setTipoEstablecimiento("01");
+        emisor.setNit(company.getNit());
+        emisor.setNrc(company.getNrc());
+        emisor.setNombre(cleanText(company.getName()));
+        emisor.setCodActividad(company.getCodActividad());
+        emisor.setDescActividad(cleanText(company.getDescActividad()));
+        emisor.setNombreComercial(cleanText(company.getNombreComercial()));
+        emisor.setTipoEstablecimiento(company.getTipoEstablecimiento());
 
         DireccionDTO dirEmisor = new DireccionDTO();
-        dirEmisor.setDepartamento("06");
-        dirEmisor.setMunicipio("14");
-        dirEmisor.setComplemento(cleanText("Av. Arturo numero 3"));
+        dirEmisor.setDepartamento(company.getDepartamento());
+        dirEmisor.setMunicipio(company.getMunicipio());
+        dirEmisor.setComplemento(cleanText(company.getDireccion()));
         emisor.setDireccion(dirEmisor);
 
-        emisor.setTelefono("73181827");
-        emisor.setCorreo("escobar.mario@globalsolutionslt.com");
-        emisor.setCodEstableMH("S006");
-        emisor.setCodEstable("S006");
-        emisor.setCodPuntoVentaMH("M201");
-        emisor.setCodPuntoVenta("M201");
+        emisor.setTelefono(company.getTelefono());
+        emisor.setCorreo(company.getCorreo());
+        emisor.setCodEstableMH(company.getCodEstableMh());
+        emisor.setCodEstable(company.getCodEstable());
+        emisor.setCodPuntoVentaMH(company.getCodPuntoVentaMh());
+        emisor.setCodPuntoVenta(company.getCodPuntoVenta());
 
         dte.setEmisor(emisor);
+
 
         // ============================
         // RECEPTOR
