@@ -17,20 +17,8 @@ public class CompanyController {
     }
 
     @PutMapping
-    public ResponseEntity<Company> updateDteStatus(@RequestBody DteToggleRequest request) {
-        Company updated = companyService.updateDteEnabled(request.isDteEnabled());
+    public ResponseEntity<Company> updateCompany(@RequestBody UpdateCompanyRequest request) {
+        Company updated = companyService.updateCompany(request);
         return ResponseEntity.ok(updated);
-    }
-
-    public static class DteToggleRequest {
-        private boolean dteEnabled;
-
-        public boolean isDteEnabled() {
-            return dteEnabled;
-        }
-
-        public void setDteEnabled(boolean dteEnabled) {
-            this.dteEnabled = dteEnabled;
-        }
     }
 }

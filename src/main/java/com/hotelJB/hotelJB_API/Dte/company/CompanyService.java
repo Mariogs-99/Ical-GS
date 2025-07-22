@@ -6,4 +6,6 @@ public interface CompanyService {
     Company getCompany();
 
     Company updateDteEnabled(boolean enabled);
+
+    Company updateCompany(UpdateCompanyRequest request);
 }

@@ -25,4 +25,24 @@ public class CompanyServiceImpl implements CompanyService {
         return companyRepository.save(company);
     }
 
+    //!Pemite actualizar la empresa
+    @Override
+    public Company updateCompany(UpdateCompanyRequest request) {
+        Company company = getCompany(); // Suponiendo que solo hay una
+        company.setName(request.getName());
+        company.setCorreo(request.getCorreo());
+        company.setTelefono(request.getTelefono());
+        company.setDireccion(request.getDireccion());
+        company.setNit(request.getNit());
+        company.setNrc(request.getNrc());
+        company.setDepartamento(request.getDepartamento());
+        company.setMunicipio(request.getMunicipio());
+        company.setDteEnabled(request.isDteEnabled());
+        company.setNombreComercial(request.getNombreComercial());
+
+        return companyRepository.save(company);
+    }
+
+
+
 }
