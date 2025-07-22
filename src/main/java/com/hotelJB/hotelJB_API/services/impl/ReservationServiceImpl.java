@@ -180,6 +180,8 @@ public class ReservationServiceImpl implements ReservationService {
             // Enviar DTE
             DteResponse dteResponse = dteTransmitterService.enviarDte(dteRequest, token);
 
+            jasperParams.put("selloRecibido", dteResponse.getSelloRecibido() != null ? dteResponse.getSelloRecibido() : "");
+
             System.out.println("RESPUESTA HACIENDA:");
             System.out.println(dteResponse);
 

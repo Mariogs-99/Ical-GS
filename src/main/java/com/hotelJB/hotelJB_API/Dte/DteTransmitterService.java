@@ -72,7 +72,7 @@ public class DteTransmitterService {
             Map<String, Object> responseMap = mapper.readValue(responseBody, Map.class);
             String estado = (String) responseMap.getOrDefault("estado", null);
             String mensaje = (String) responseMap.getOrDefault("mensaje", null);
-            String selloRecepcion = (String) responseMap.getOrDefault("selloRecibido", null);
+            String selloRecibido = (String) responseMap.getOrDefault("selloRecibido", null);
             String codigoGeneracion = (String) responseMap.getOrDefault("codigoGeneracion", null);
 
             boolean exitoso = "RECIBIDO".equalsIgnoreCase(estado);
@@ -82,7 +82,7 @@ public class DteTransmitterService {
                     estado,
                     mensaje,
                     codigoGeneracion,
-                    selloRecepcion,
+                    selloRecibido,
                     Collections.singletonList(""),
                     responseBody
             );

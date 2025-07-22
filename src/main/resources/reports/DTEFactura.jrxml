@@ -37,6 +37,8 @@
     <parameter name="codigoGeneracion" class="java.lang.String"/>
     <parameter name="observaciones" class="java.lang.String"/>
     <parameter name="qrImageBase64" class="java.io.InputStream"/>
+    <parameter name="selloRecibido" class="java.lang.String"/>
+    <parameter name="numerodeControl" class="java.lang.String"/>
 
     <detail>
         <band height="700">
@@ -276,6 +278,40 @@
                     <font size="8"/>
                 </textElement>
                 <textFieldExpression><![CDATA[$P{observaciones}]]></textFieldExpression>
+            </textField>
+
+            <!-- Código de Generación y Observaciones -->
+            <textField>
+                <reportElement x="20" y="490" width="515" height="12" forecolor="#999999"/>
+                <textElement>
+                    <font size="8" isItalic="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Cód. Generación DTE: " + $P{codigoGeneracion}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="20" y="503" width="515" height="12" forecolor="#999999"/>
+                <textElement>
+                    <font size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{observaciones}]]></textFieldExpression>
+            </textField>
+
+            <!-- NUEVOS CAMPOS -->
+            <textField>
+                <reportElement x="20" y="516" width="515" height="12" forecolor="#999999"/>
+                <textElement>
+                    <font size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Número de Control: " + $P{numerodeControl}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="20" y="529" width="515" height="12" forecolor="#999999"/>
+                <textElement>
+                    <font size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Sello Recibido: " + $P{selloRecibido}]]></textFieldExpression>
             </textField>
 
             <image scaleImage="RetainShape">

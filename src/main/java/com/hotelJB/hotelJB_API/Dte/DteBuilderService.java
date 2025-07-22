@@ -99,8 +99,8 @@ public class DteBuilderService {
         // RECEPTOR
         // ============================
         ReceptorDTO receptor = new ReceptorDTO();
-        receptor.setTipoDocumento("13");
-        receptor.setNumDocumento("00425287-9");
+        receptor.setTipoDocumento(null);
+        receptor.setNumDocumento(null);
         receptor.setNombre(
                 reservation.getName() != null && !reservation.getName().trim().isEmpty()
                         ? cleanText(reservation.getName().trim())
@@ -294,6 +294,7 @@ public class DteBuilderService {
         params.put("totalPagar", totalPagar.toPlainString());
 
         params.put("codigoGeneracion", identificacion.getCodigoGeneracion());
+        params.put("numerodeControl", identificacion.getNumeroControl());
         params.put("observaciones", extension.getObservaciones());
         params.put("logoImage", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLo8t9NH1j1eo_tGo70lM2OcYKY4mhwhntvA&s");
 

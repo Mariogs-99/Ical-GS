@@ -14,7 +14,7 @@ public class DteResponse {
     private String estado;
     private String mensaje;
     private String codigoGeneracion;
-    private String selloRecepcion;
+    private String selloRecibido;
     private List<String> observaciones;
     private String responseBody;
 }
