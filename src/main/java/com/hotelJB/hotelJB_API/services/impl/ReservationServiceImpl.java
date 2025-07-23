@@ -180,13 +180,16 @@ public class ReservationServiceImpl implements ReservationService {
             // Enviar DTE
             DteResponse dteResponse = dteTransmitterService.enviarDte(dteRequest, token);
 
-            jasperParams.put("selloRecibido", dteResponse.getSelloRecibido() != null ? dteResponse.getSelloRecibido() : "");
+
+
 
             System.out.println("RESPUESTA HACIENDA:");
             System.out.println(dteResponse);
 
             if (dteResponse.isExitoso()) {
                 System.out.println("✅ DTE RECIBIDO CORRECTAMENTE");
+
+
             } else {
                 System.out.println("❌ DTE RECHAZADO: " + dteResponse.getMensaje());
                 System.out.println("OBSERVACIONES: " + dteResponse.getObservaciones());
@@ -213,9 +216,16 @@ public class ReservationServiceImpl implements ReservationService {
 
             if (dteResponse.isExitoso()) {
                 System.out.println("✅ DTE RECIBIDO CORRECTAMENTE");
-                // Podrías guardar códigoGeneracion en reserva si quieres:
-                // reservation.setCodigoGeneracion(dteResponse.getCodigoGeneracion());
-                // reservationRepository.save(reservation);
+
+                String sello = dteResponse.getSelloRecibido() != null ? dteResponse.getSelloRecibido() : "N/D";
+
+                // Agregar al Map de parámetros del reporte
+                jasperParams.put("selloRecibido", sello);
+
+                // (Opcional: guardar también en el result si lo usas en otro lado)
+                result.setSelloRecibido(sello);
+
+
             } else {
                 System.out.println("❌ DTE RECHAZADO: " + dteResponse.getMensaje());
                 System.out.println("OBSERVACIONES: " + dteResponse.getObservaciones());
@@ -224,7 +234,6 @@ public class ReservationServiceImpl implements ReservationService {
         } catch (Exception e) {
             System.out.println("⚠️ No se pudo procesar el DTE con Hacienda:");
             e.printStackTrace();
-            // Aquí puedes notificar al admin o guardar log, etc.
         }
 
         try {

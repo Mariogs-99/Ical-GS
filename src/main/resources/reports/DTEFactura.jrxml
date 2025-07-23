@@ -1,324 +1,244 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport
-        xmlns="http://jasperreports.sourceforge.net/jasperreports"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
-        name="DTEFactura"
-        pageWidth="595"
-        pageHeight="842"
-        columnWidth="555"
-        leftMargin="20"
-        rightMargin="20"
-        topMargin="20"
-        bottomMargin="20">
-
-    <!-- Parámetros -->
-    <parameter name="logoImage" class="java.lang.String"/>
-    <parameter name="emisorNombre" class="java.lang.String"/>
-    <parameter name="emisorNit" class="java.lang.String"/>
-    <parameter name="emisorNrc" class="java.lang.String"/>
-    <parameter name="emisorDireccion" class="java.lang.String"/>
-    <parameter name="emisorTelefono" class="java.lang.String"/>
-    <parameter name="emisorCorreo" class="java.lang.String"/>
-    <parameter name="clienteNombre" class="java.lang.String"/>
-    <parameter name="clienteDocumento" class="java.lang.String"/>
-    <parameter name="clienteTelefono" class="java.lang.String"/>
-    <parameter name="clienteCorreo" class="java.lang.String"/>
-    <parameter name="fechaEmision" class="java.lang.String"/>
-    <parameter name="horaEmision" class="java.lang.String"/>
-    <parameter name="descripcionItem" class="java.lang.String"/>
-    <parameter name="cantidadItem" class="java.lang.String"/>
-    <parameter name="precioItem" class="java.lang.String"/>
-    <parameter name="subtotalItem" class="java.lang.String"/>
-    <parameter name="totalNeto" class="java.lang.String"/>
-    <parameter name="totalIva" class="java.lang.String"/>
-    <parameter name="totalTributo" class="java.lang.String"/>
-    <parameter name="totalPagar" class="java.lang.String"/>
-    <parameter name="codigoGeneracion" class="java.lang.String"/>
-    <parameter name="observaciones" class="java.lang.String"/>
-    <parameter name="qrImageBase64" class="java.io.InputStream"/>
-    <parameter name="selloRecibido" class="java.lang.String"/>
-    <parameter name="numerodeControl" class="java.lang.String"/>
-
-    <detail>
-        <band height="700">
-
-            <!-- Fondo -->
-            <rectangle>
-                <reportElement mode="Opaque" x="0" y="0" width="555" height="700" backcolor="#FFFFFF"/>
-            </rectangle>
-
-            <!-- Header Background -->
-            <rectangle>
-                <reportElement mode="Opaque" x="0" y="0" width="555" height="60" backcolor="#C8E6C9"/>
-            </rectangle>
-
-            <!-- Logo -->
-            <image scaleImage="RetainShape">
-                <reportElement x="20" y="10" width="40" height="40"/>
-                <imageExpression><![CDATA[$P{logoImage}]]></imageExpression>
-            </image>
-
-            <!-- Título -->
-            <textField>
-                <reportElement mode="Transparent" x="80" y="10" width="455" height="40" forecolor="#33691E"/>
-                <textElement textAlignment="Right" verticalAlignment="Middle">
-                    <font size="16" isBold="true"/>
-                </textElement>
-                <textFieldExpression><![CDATA["FACTURA ELECTRÓNICA - DTE"]]></textFieldExpression>
-            </textField>
-
-            <line>
-                <reportElement x="20" y="65" width="515" height="1" forecolor="#C8E6C9"/>
-            </line>
-
-            <!-- Emisor -->
-            <textField>
-                <reportElement x="20" y="183" width="515" height="15" forecolor="#33691E"/>
-                <textElement>
-                    <font size="11" isBold="true"/>
-                </textElement>
-                <textFieldExpression><![CDATA[$P{emisorNombre}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="20" y="200" width="515" height="12" forecolor="#444444"/>
-                <textElement>
-                    <font size="9"/>
-                </textElement>
-                <textFieldExpression><![CDATA["NIT: " + $P{emisorNit} + " | NRC: " + $P{emisorNrc}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="20" y="212" width="515" height="12" forecolor="#444444"/>
-                <textElement>
-                    <font size="9"/>
-                </textElement>
-                <textFieldExpression><![CDATA[$P{emisorDireccion}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="20" y="224" width="515" height="12" forecolor="#444444"/>
-                <textElement>
-                    <font size="9"/>
-                </textElement>
-                <textFieldExpression><![CDATA["Tel: " + $P{emisorTelefono} + " | Correo: " + $P{emisorCorreo}]]></textFieldExpression>
-            </textField>
-
-            <line>
-                <reportElement x="20" y="241" width="515" height="1" forecolor="#C8E6C9"/>
-            </line>
-
-            <!-- Cliente -->
-            <textField>
-                <reportElement x="20" y="248" width="515" height="12" forecolor="#33691E"/>
-                <textElement>
-                    <font size="10" isBold="true"/>
-                </textElement>
-                <textFieldExpression><![CDATA["CLIENTE: " + $P{clienteNombre}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="20" y="260" width="515" height="12" forecolor="#444444"/>
-                <textElement>
-                    <font size="9"/>
-                </textElement>
-                <textFieldExpression><![CDATA["Documento: " + $P{clienteDocumento}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="20" y="272" width="515" height="12" forecolor="#444444"/>
-                <textElement>
-                    <font size="9"/>
-                </textElement>
-                <textFieldExpression><![CDATA["Teléfono: " + $P{clienteTelefono}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="20" y="284" width="515" height="12" forecolor="#444444"/>
-                <textElement>
-                    <font size="9"/>
-                </textElement>
-                <textFieldExpression><![CDATA["Correo: " + $P{clienteCorreo}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="20" y="296" width="515" height="12" forecolor="#444444"/>
-                <textElement>
-                    <font size="9"/>
-                </textElement>
-                <textFieldExpression><![CDATA["Fecha Emisión: " + $P{fechaEmision} + " " + $P{horaEmision}]]></textFieldExpression>
-            </textField>
-
-            <line>
-                <reportElement x="20" y="313" width="515" height="1" forecolor="#C8E6C9"/>
-            </line>
-
-            <!-- Cabecera Items -->
-            <textField>
-                <reportElement mode="Opaque" x="20" y="323" width="310" height="12" forecolor="#33691E" backcolor="#C8E6C9"/>
-                <textElement>
-                    <font size="9" isBold="true"/>
-                </textElement>
-                <textFieldExpression><![CDATA["Descripción"]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement mode="Opaque" x="340" y="323" width="50" height="12" forecolor="#33691E" backcolor="#C8E6C9"/>
-                <textElement textAlignment="Right">
-                    <font size="9" isBold="true"/>
-                </textElement>
-                <textFieldExpression><![CDATA["Cant"]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement mode="Opaque" x="395" y="323" width="65" height="12" forecolor="#33691E" backcolor="#C8E6C9"/>
-                <textElement textAlignment="Right">
-                    <font size="9" isBold="true"/>
-                </textElement>
-                <textFieldExpression><![CDATA["Precio"]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement mode="Opaque" x="465" y="323" width="70" height="12" forecolor="#33691E" backcolor="#C8E6C9"/>
-                <textElement textAlignment="Right">
-                    <font size="9" isBold="true"/>
-                </textElement>
-                <textFieldExpression><![CDATA["Subtotal"]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="20" y="338" width="310" height="15" forecolor="#444444"/>
-                <textElement>
-                    <font size="9"/>
-                </textElement>
-                <textFieldExpression><![CDATA[$P{descripcionItem}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="340" y="338" width="50" height="15" forecolor="#444444"/>
-                <textElement textAlignment="Right">
-                    <font size="9"/>
-                </textElement>
-                <textFieldExpression><![CDATA[$P{cantidadItem}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="395" y="338" width="65" height="15" forecolor="#444444"/>
-                <textElement textAlignment="Right">
-                    <font size="9"/>
-                </textElement>
-                <textFieldExpression><![CDATA["$" + $P{precioItem}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="465" y="338" width="70" height="15" forecolor="#444444"/>
-                <textElement textAlignment="Right">
-                    <font size="9"/>
-                </textElement>
-                <textFieldExpression><![CDATA["$" + $P{subtotalItem}]]></textFieldExpression>
-            </textField>
-
-            <line>
-                <reportElement x="20" y="358" width="515" height="1" forecolor="#C8E6C9"/>
-            </line>
-
-            <!-- Totales -->
-            <rectangle>
-                <reportElement mode="Opaque" x="275" y="373" width="260" height="70" backcolor="#F0F7F1"/>
-            </rectangle>
-
-            <textField>
-                <reportElement x="280" y="378" width="250" height="12" forecolor="#33691E"/>
-                <textElement textAlignment="Right">
-                    <font size="9" isBold="true"/>
-                </textElement>
-                <textFieldExpression><![CDATA["Total Neto: $" + $P{totalNeto}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="280" y="392" width="250" height="12" forecolor="#33691E"/>
-                <textElement textAlignment="Right">
-                    <font size="9" isBold="true"/>
-                </textElement>
-                <textFieldExpression><![CDATA["IVA: $" + $P{totalIva}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="280" y="406" width="250" height="12" forecolor="#33691E"/>
-                <textElement textAlignment="Right">
-                    <font size="9" isBold="true"/>
-                </textElement>
-                <textFieldExpression><![CDATA["Tributo Turismo: $" + $P{totalTributo}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="280" y="420" width="250" height="15" forecolor="#2E7D32"/>
-                <textElement textAlignment="Right" verticalAlignment="Middle">
-                    <font size="11" isBold="true"/>
-                </textElement>
-                <textFieldExpression><![CDATA["Total a Pagar: $" + $P{totalPagar}]]></textFieldExpression>
-            </textField>
-
-            <line>
-                <reportElement x="15" y="460" width="515" height="1" forecolor="#C8E6C9"/>
-            </line>
-
-            <textField>
-                <reportElement x="20" y="490" width="515" height="12" forecolor="#999999"/>
-                <textElement>
-                    <font size="8" isItalic="true"/>
-                </textElement>
-                <textFieldExpression><![CDATA["Cód. Generación DTE: " + $P{codigoGeneracion}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="20" y="503" width="515" height="12" forecolor="#999999"/>
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression><![CDATA[$P{observaciones}]]></textFieldExpression>
-            </textField>
-
-            <!-- Código de Generación y Observaciones -->
-            <textField>
-                <reportElement x="20" y="490" width="515" height="12" forecolor="#999999"/>
-                <textElement>
-                    <font size="8" isItalic="true"/>
-                </textElement>
-                <textFieldExpression><![CDATA["Cód. Generación DTE: " + $P{codigoGeneracion}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="20" y="503" width="515" height="12" forecolor="#999999"/>
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression><![CDATA[$P{observaciones}]]></textFieldExpression>
-            </textField>
-
-            <!-- NUEVOS CAMPOS -->
-            <textField>
-                <reportElement x="20" y="516" width="515" height="12" forecolor="#999999"/>
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression><![CDATA["Número de Control: " + $P{numerodeControl}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="20" y="529" width="515" height="12" forecolor="#999999"/>
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression><![CDATA["Sello Recibido: " + $P{selloRecibido}]]></textFieldExpression>
-            </textField>
-
-            <image scaleImage="RetainShape">
-                <reportElement x="20" y="70" width="100" height="100"/>
-                <imageExpression><![CDATA[$P{qrImageBase64}]]></imageExpression>
-            </image>
-
-        </band>
-    </detail>
+<!-- Created with Jaspersoft Studio version 6.21.5.final using JasperReports Library version 6.21.5-74d586df47b25dbd05bd0957999819196e59934a  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="DTEFactura" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="445b3fba-9c68-4fbb-a5de-1f2da34e6263">
+	<parameter name="logoImage" class="java.lang.String"/>
+	<parameter name="emisorNombre" class="java.lang.String"/>
+	<parameter name="emisorNit" class="java.lang.String"/>
+	<parameter name="emisorNrc" class="java.lang.String"/>
+	<parameter name="emisorDireccion" class="java.lang.String"/>
+	<parameter name="emisorTelefono" class="java.lang.String"/>
+	<parameter name="emisorCorreo" class="java.lang.String"/>
+	<parameter name="clienteNombre" class="java.lang.String"/>
+	<parameter name="clienteDocumento" class="java.lang.String"/>
+	<parameter name="clienteTelefono" class="java.lang.String"/>
+	<parameter name="clienteCorreo" class="java.lang.String"/>
+	<parameter name="fechaEmision" class="java.lang.String"/>
+	<parameter name="horaEmision" class="java.lang.String"/>
+	<parameter name="descripcionItem" class="java.lang.String"/>
+	<parameter name="cantidadItem" class="java.lang.String"/>
+	<parameter name="precioItem" class="java.lang.String"/>
+	<parameter name="subtotalItem" class="java.lang.String"/>
+	<parameter name="totalNeto" class="java.lang.String"/>
+	<parameter name="totalIva" class="java.lang.String"/>
+	<parameter name="totalTributo" class="java.lang.String"/>
+	<parameter name="totalPagar" class="java.lang.String"/>
+	<parameter name="codigoGeneracion" class="java.lang.String"/>
+	<parameter name="observaciones" class="java.lang.String"/>
+	<parameter name="qrImageBase64" class="java.io.InputStream"/>
+	<parameter name="selloRecibido" class="java.lang.String"/>
+	<parameter name="numerodeControl" class="java.lang.String"/>
+	<detail>
+		<band height="700">
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="-4" width="555" height="700" backcolor="#FFFFFF" uuid="21886f38-e3ac-4ca3-89f2-25454864d9c8"/>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="61" width="555" height="9" backcolor="#C8E6C9" uuid="17363837-d1a6-4b3f-88a8-6cfb7bf67fa6"/>
+			</rectangle>
+			<image scaleImage="RetainShape">
+				<reportElement x="10" y="0" width="65" height="59" uuid="02f0de28-120b-4991-b961-aa24d66a01b2"/>
+				<imageExpression><![CDATA[$P{logoImage}]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement mode="Transparent" x="80" y="0" width="455" height="30" forecolor="#33691E" uuid="7c082bb9-9249-4d7f-98f1-0aa9aa879817"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="16" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["DOCUMENTO TRIBUTARIO ELECTRONICO"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="20" y="65" width="515" height="1" forecolor="#C8E6C9" uuid="c441b322-da9d-4849-a301-e82672a8cddd"/>
+			</line>
+			<textField>
+				<reportElement x="20" y="239" width="515" height="15" forecolor="#33691E" uuid="3356bddf-190c-46bc-82e6-95b0e9962468"/>
+				<textElement>
+					<font size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{emisorNombre}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="20" y="256" width="515" height="12" forecolor="#444444" uuid="67625a4f-ad0f-4bee-8d08-3b0c1af67d23"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["NIT: " + $P{emisorNit} + " | NRC: " + $P{emisorNrc}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="20" y="268" width="515" height="12" forecolor="#444444" uuid="62bc9989-ae92-4c52-b10a-6cbc557d2739"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{emisorDireccion}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="20" y="280" width="515" height="12" forecolor="#444444" uuid="46ea42c9-70db-4aa8-a048-f5b1bc6bf14d"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Tel: " + $P{emisorTelefono} + " | Correo: " + $P{emisorCorreo}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="20" y="297" width="515" height="1" forecolor="#C8E6C9" uuid="c9cad09c-f06a-4855-a128-24041f294954"/>
+			</line>
+			<textField>
+				<reportElement x="20" y="310" width="515" height="12" forecolor="#444444" uuid="a245ef05-533f-4ccd-b976-61fb032b8072"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Teléfono: " + $P{clienteTelefono}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="20" y="322" width="515" height="12" forecolor="#444444" uuid="b4bb43f8-1a79-48fc-84c0-ee4cbccc67b0"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Correo: " + $P{clienteCorreo}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="20" y="334" width="515" height="12" forecolor="#444444" uuid="14e9338c-9808-4c72-a12f-6fc8fdb10610"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Fecha Emisión: " + $P{fechaEmision} + " " + $P{horaEmision}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="20" y="351" width="515" height="1" forecolor="#C8E6C9" uuid="6852711b-7c4a-4cb7-9d7a-f72fd5ab4c6c"/>
+			</line>
+			<textField>
+				<reportElement mode="Opaque" x="20" y="361" width="310" height="12" forecolor="#33691E" backcolor="#C8E6C9" uuid="83517828-4cd9-4df0-927d-381e9bd877a2"/>
+				<textElement>
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Descripción"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="340" y="361" width="50" height="12" forecolor="#33691E" backcolor="#C8E6C9" uuid="12b0ecc5-0511-4a2f-a25d-21e1eb03b70c"/>
+				<textElement textAlignment="Right">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Cant"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="395" y="361" width="65" height="12" forecolor="#33691E" backcolor="#C8E6C9" uuid="64dc5de4-c566-4ce0-9a10-0ab4a94af951"/>
+				<textElement textAlignment="Right">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Precio"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="465" y="361" width="70" height="12" forecolor="#33691E" backcolor="#C8E6C9" uuid="d863aa41-6b81-489e-bdc8-2f058e1c7545"/>
+				<textElement textAlignment="Right">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Subtotal"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="20" y="376" width="310" height="15" forecolor="#444444" uuid="ec2a153b-353a-4551-8dee-117281d5d951"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{descripcionItem}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="340" y="376" width="50" height="15" forecolor="#444444" uuid="85cf5765-116d-4542-a26f-20bc3ec19dff"/>
+				<textElement textAlignment="Right">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{cantidadItem}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="395" y="376" width="65" height="15" forecolor="#444444" uuid="cc23690b-dd85-42f8-b1f2-55a98cf5a2ac"/>
+				<textElement textAlignment="Right">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["$" + $P{precioItem}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="465" y="376" width="70" height="15" forecolor="#444444" uuid="690f1a93-a7ef-4b2b-b350-836ea37c9e23"/>
+				<textElement textAlignment="Right">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["$" + $P{subtotalItem}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="20" y="396" width="515" height="1" forecolor="#C8E6C9" uuid="29cbafe6-5bae-4105-a621-9a3a9e2c5ad6"/>
+			</line>
+			<rectangle>
+				<reportElement mode="Opaque" x="275" y="411" width="260" height="70" backcolor="#F0F7F1" uuid="6918b498-ea86-48ef-82ee-0eff2fc0fd23"/>
+			</rectangle>
+			<textField>
+				<reportElement x="280" y="416" width="250" height="12" forecolor="#707070" uuid="d8fb0083-4974-4068-8a97-15829e81807f"/>
+				<textElement textAlignment="Right">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Total Neto: $" + $P{totalNeto}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="280" y="430" width="250" height="12" forecolor="#707070" uuid="8c553d5d-3081-47a9-bd9d-bfb6bcf5f635"/>
+				<textElement textAlignment="Right">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["IVA: $" + $P{totalIva}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="280" y="444" width="250" height="12" forecolor="#707070" uuid="c70f3637-effb-46b2-b9d1-6e4441487c27"/>
+				<textElement textAlignment="Right">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Tributo Turismo: $" + $P{totalTributo}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="280" y="458" width="250" height="15" forecolor="#707070" uuid="472d819e-4314-40f1-8552-550bdd12fb35"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Total a Pagar: $" + $P{totalPagar}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="15" y="498" width="515" height="1" forecolor="#C8E6C9" uuid="f2cd7355-d285-403a-8f6f-16156eb9ebab"/>
+			</line>
+			<rectangle>
+				<reportElement mode="Opaque" x="188" y="140" width="345" height="70" backcolor="#F0F7F1" uuid="6ce23723-1f2b-4bcb-b776-bccee1e6a4f7"/>
+			</rectangle>
+			<textField>
+				<reportElement x="198" y="148" width="320" height="12" forecolor="#707070" uuid="7e787cf4-efc7-47d3-bcbe-d411f6f20dfa"/>
+				<textElement>
+					<font size="8" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Cód. Generación DTE: " + $P{codigoGeneracion}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="198" y="169" width="320" height="12" forecolor="#707070" uuid="0e89be31-89e2-4953-9b15-6ca2b0964638"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Número de Control: " + $P{numerodeControl}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="198" y="190" width="320" height="12" forecolor="#707070" uuid="e3cbfd08-f58b-4fcc-be50-c84ac6b232b8"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Sello Recibido: " + $P{selloRecibido}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="RetainShape">
+				<reportElement x="15" y="90" width="135" height="132" uuid="fcca3ee3-9bb5-4cb1-8e7e-1482c8b233e4"/>
+				<imageExpression><![CDATA[$P{qrImageBase64}]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement mode="Transparent" x="80" y="30" width="455" height="29" forecolor="#33691E" uuid="b410e9f7-e669-4585-b8c4-96ec9060e8c4"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="16" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["FACTURA"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Transparent" x="190" y="90" width="343" height="34" forecolor="#33691E" uuid="6e938879-ea34-4314-ae68-c191b9dc2b86"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="16" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["HOTEL JARDIN DE LAS MARIAS"]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
 </jasperReport>

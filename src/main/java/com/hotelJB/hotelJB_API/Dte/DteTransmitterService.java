@@ -66,26 +66,30 @@ public class DteTransmitterService {
 
             String responseBody = response.getBody();
 
-            System.out.println("✅ Respuesta Hacienda:");
+            System.out.println("Respuesta Hacienda:");
             System.out.println(responseBody);
 
             Map<String, Object> responseMap = mapper.readValue(responseBody, Map.class);
+
             String estado = (String) responseMap.getOrDefault("estado", null);
-            String mensaje = (String) responseMap.getOrDefault("mensaje", null);
+            String descripcionMsg = (String) responseMap.getOrDefault("descripcionMsg", null); // nuevo
+            String codigoMsg = (String) responseMap.getOrDefault("codigoMsg", null);           // nuevo
             String selloRecibido = (String) responseMap.getOrDefault("selloRecibido", null);
             String codigoGeneracion = (String) responseMap.getOrDefault("codigoGeneracion", null);
 
-            boolean exitoso = "RECIBIDO".equalsIgnoreCase(estado);
+
+            boolean exitoso = "PROCESADO".equalsIgnoreCase(estado) && "001".equals(codigoMsg);
+
 
             return new DteResponse(
-                    exitoso,
                     estado,
-                    mensaje,
+                    descripcionMsg,
                     codigoGeneracion,
                     selloRecibido,
                     Collections.singletonList(""),
                     responseBody
             );
+
 
         } catch (HttpClientErrorException e) {
             System.out.println("❌ ERROR al enviar DTE:");
