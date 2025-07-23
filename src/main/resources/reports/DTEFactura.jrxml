@@ -198,7 +198,7 @@
 				<reportElement x="15" y="498" width="515" height="1" forecolor="#C8E6C9" uuid="f2cd7355-d285-403a-8f6f-16156eb9ebab"/>
 			</line>
 			<rectangle>
-				<reportElement mode="Opaque" x="188" y="140" width="345" height="70" backcolor="#F0F7F1" uuid="6ce23723-1f2b-4bcb-b776-bccee1e6a4f7"/>
+				<reportElement mode="Opaque" x="188" y="140" width="347" height="70" backcolor="#F0F7F1" uuid="6ce23723-1f2b-4bcb-b776-bccee1e6a4f7"/>
 			</rectangle>
 			<textField>
 				<reportElement x="198" y="148" width="320" height="12" forecolor="#707070" uuid="7e787cf4-efc7-47d3-bcbe-d411f6f20dfa"/>

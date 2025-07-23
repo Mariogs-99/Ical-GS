@@ -1197,6 +1197,12 @@ public class ReservationServiceImpl implements ReservationService {
             // Transmitir
             DteResponse dteResponse = dteTransmitterService.enviarDte(dteRequest, token);
 
+            if (dteResponse.getSelloRecibido() != null && !dteResponse.getSelloRecibido().isEmpty()) {
+                jasperParams.put("selloRecibido", dteResponse.getSelloRecibido());
+            } else {
+                jasperParams.put("selloRecibido", "N/D");
+            }
+
             // Guardar DTE
             Dte dteEntity = new Dte();
             dteEntity.setReservationCode(reservation.getReservationCode());
