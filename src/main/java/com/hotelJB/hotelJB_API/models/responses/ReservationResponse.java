@@ -25,10 +25,9 @@ public class ReservationResponse {
     private LocalDateTime creationDate;
     private String status;
 
-    // ✅ Para multi-room (sigue igual)
+
     private List<ReservationRoomResponse> rooms;
 
-    // ✅ Nuevo campo para reservas EXTERNAS (una sola habitación)
     private RoomShortResponse room;
 
     private String roomNumber;

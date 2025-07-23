@@ -42,7 +42,7 @@
 			<textField>
 				<reportElement mode="Transparent" x="80" y="0" width="455" height="30" forecolor="#33691E" uuid="7c082bb9-9249-4d7f-98f1-0aa9aa879817"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Arial" size="16" isBold="true"/>
+					<font fontName="Arial" size="16" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA["DOCUMENTO TRIBUTARIO ELECTRONICO"]]></textFieldExpression>
 			</textField>
@@ -228,16 +228,9 @@
 			<textField>
 				<reportElement mode="Transparent" x="80" y="30" width="455" height="29" forecolor="#33691E" uuid="b410e9f7-e669-4585-b8c4-96ec9060e8c4"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Arial" size="16" isBold="true"/>
+					<font fontName="Arial" size="16" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA["FACTURA"]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement mode="Transparent" x="190" y="90" width="343" height="34" forecolor="#33691E" uuid="6e938879-ea34-4314-ae68-c191b9dc2b86"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Arial" size="16" isBold="true"/>
-				</textElement>
-				<textFieldExpression><![CDATA["HOTEL JARDIN DE LAS MARIAS"]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
