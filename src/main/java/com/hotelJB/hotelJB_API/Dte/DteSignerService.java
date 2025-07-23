@@ -1,6 +1,9 @@
 package com.hotelJB.hotelJB_API.Dte;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hotelJB.hotelJB_API.Dte.company.Company;
+import com.hotelJB.hotelJB_API.Dte.company.CompanyService;
+import com.hotelJB.hotelJB_API.Dte.company.EncryptionUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -15,14 +18,33 @@ public class DteSignerService {
     @Value("${dte.signer.url}")
     private String signerUrl;
 
-    @Value("${dte.signer.nit}")
-    private String nitEmisor;
+    private final CompanyService companyService;
+    private final EncryptionUtil encryptionUtil;
 
-    @Value("${dte.signer.certPassword}")
-    private String passwordCertificado;
+    public DteSignerService(CompanyService companyService, EncryptionUtil encryptionUtil) {
+        this.companyService = companyService;
+        this.encryptionUtil = encryptionUtil;
+    }
 
     public String firmar(String dteJson) {
         RestTemplate restTemplate = new RestTemplate();
+
+        Company company = companyService.getCompany();
+
+        String nit = company.getNit();
+        String encryptedCertPassword = company.getCertPassword();
+
+        if (nit == null || encryptedCertPassword == null) {
+            throw new RuntimeException("Faltan el NIT o la contraseña del certificado en la configuración del hotel.");
+        }
+
+        // Descifrar contraseña del certificado
+        String certPassword;
+        try {
+            certPassword = encryptionUtil.decrypt(encryptedCertPassword);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al descifrar la contraseña del certificado.", e);
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -36,8 +58,8 @@ public class DteSignerService {
         }
 
         Map<String, Object> payload = new HashMap<>();
-        payload.put("nit", nitEmisor);
-        payload.put("passwordPri", passwordCertificado);
+        payload.put("nit", nit);
+        payload.put("passwordPri", certPassword);
         payload.put("dteJson", dteJsonObject);
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
@@ -54,7 +76,7 @@ public class DteSignerService {
         if (body != null && "OK".equalsIgnoreCase((String) body.get("status"))) {
             return (String) body.get("body");
         } else {
-            throw new RuntimeException("Error firmando DTE: " + response.getBody());
+            throw new RuntimeException("Error firmando DTE: " + body);
         }
     }
 }

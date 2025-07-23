@@ -12,13 +12,51 @@ public class CompanyController {
     private CompanyService companyService;
 
     @GetMapping
-    public ResponseEntity<Company> getCompany() {
-        return ResponseEntity.ok(companyService.getCompany());
+    public ResponseEntity<CompanyResponseDTO> getCompany() {
+        Company company = companyService.getCompany();
+
+        CompanyResponseDTO dto = new CompanyResponseDTO(
+                company.getName(),
+                company.getNombreComercial(),
+                company.getCorreo(),
+                company.getTelefono(),
+                company.getDireccion(),
+                company.getNit(),
+                company.getNrc(),
+                company.getDepartamento(),
+                company.getMunicipio(),
+                company.isDteEnabled(),
+                company.getCodEstableMh(),
+                company.getCodEstable(),
+                company.getCodPuntoVentaMh(),
+                company.getCodPuntoVenta()
+        );
+
+        return ResponseEntity.ok(dto);
     }
 
     @PutMapping
-    public ResponseEntity<Company> updateCompany(@RequestBody UpdateCompanyRequest request) {
+    public ResponseEntity<CompanyResponseDTO> updateCompany(@RequestBody UpdateCompanyRequest request) {
         Company updated = companyService.updateCompany(request);
-        return ResponseEntity.ok(updated);
+
+        CompanyResponseDTO dto = new CompanyResponseDTO(
+                updated.getName(),
+                updated.getNombreComercial(),
+                updated.getCorreo(),
+                updated.getTelefono(),
+                updated.getDireccion(),
+                updated.getNit(),
+                updated.getNrc(),
+                updated.getDepartamento(),
+                updated.getMunicipio(),
+                updated.isDteEnabled(),
+                updated.getCodEstableMh(),
+                updated.getCodEstable(),
+                updated.getCodPuntoVentaMh(),
+                updated.getCodPuntoVenta()
+        );
+
+        return ResponseEntity.ok(dto);
     }
+
 }

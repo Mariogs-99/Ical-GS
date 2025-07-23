@@ -61,4 +61,11 @@ public class Company {
     @Column(name = "dte_enabled")
     private boolean dteEnabled = false;
 
+    @Column(name = "mh_password")
+    private String mhPassword;
+
+    @Column(name = "cert_password")
+    private String certPassword;
+
+
 }

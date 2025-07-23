@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpdateCompanyRequest {
+public class CompanyResponseDTO {
     private String name;
     private String nombreComercial;
     private String correo;
@@ -18,11 +18,9 @@ public class UpdateCompanyRequest {
     private String departamento;
     private String municipio;
     private boolean dteEnabled;
-
     private String codEstableMh;
     private String codEstable;
     private String codPuntoVentaMh;
     private String codPuntoVenta;
-    private String mhPassword;
-    private String certPassword;
+
 }

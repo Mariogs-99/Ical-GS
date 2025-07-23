@@ -11,13 +11,15 @@ public class CompanyServiceImpl implements CompanyService {
     @Autowired
     private CompanyRepository companyRepository;
 
+    @Autowired
+    private EncryptionUtil encryptionUtil;
+
     @Override
     public Company getCompany() {
         return companyRepository.findFirstBy()
                 .orElseThrow(() -> new CustomException(ErrorType.ENTITY_NOT_FOUND, "Company"));
     }
 
-    //!Permite cambiar el estado si el hotel esta listo o no para emitir DTEs a hacienda
     @Override
     public Company updateDteEnabled(boolean enabled) {
         Company company = getCompany();
@@ -25,10 +27,10 @@ public class CompanyServiceImpl implements CompanyService {
         return companyRepository.save(company);
     }
 
-    //!Pemite actualizar la empresa
     @Override
     public Company updateCompany(UpdateCompanyRequest request) {
-        Company company = getCompany(); // Suponiendo que solo hay una
+        Company company = getCompany();
+
         company.setName(request.getName());
         company.setCorreo(request.getCorreo());
         company.setTelefono(request.getTelefono());
@@ -39,10 +41,21 @@ public class CompanyServiceImpl implements CompanyService {
         company.setMunicipio(request.getMunicipio());
         company.setDteEnabled(request.isDteEnabled());
         company.setNombreComercial(request.getNombreComercial());
+        company.setCodEstableMh(request.getCodEstableMh());
+        company.setCodEstable(request.getCodEstable());
+        company.setCodPuntoVentaMh(request.getCodPuntoVentaMh());
+        company.setCodPuntoVenta(request.getCodPuntoVenta());
+
+        // Cifrado seguro de mhPassword si fue enviado
+        if (request.getMhPassword() != null && !request.getMhPassword().isBlank()) {
+            company.setMhPassword(encryptionUtil.encrypt(request.getMhPassword()));
+        }
+
+        // Cifrado seguro de certPassword si fue enviado
+        if (request.getCertPassword() != null && !request.getCertPassword().isBlank()) {
+            company.setCertPassword(encryptionUtil.encrypt(request.getCertPassword()));
+        }
 
         return companyRepository.save(company);
     }
-
-
-
 }

@@ -46,7 +46,7 @@ public class DteTransmitterService {
 
         String jsonToSend = mapper.writeValueAsString(payload);
 
-        System.out.println("📤 JSON que se enviará a Hacienda:");
+        System.out.println("JSON que se enviará a Hacienda:");
         System.out.println(jsonToSend);
 
         HttpHeaders headers = new HttpHeaders();
