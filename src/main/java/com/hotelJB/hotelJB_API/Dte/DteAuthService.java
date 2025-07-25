@@ -3,6 +3,7 @@ package com.hotelJB.hotelJB_API.Dte;
 import com.hotelJB.hotelJB_API.Dte.company.Company;
 import com.hotelJB.hotelJB_API.Dte.company.CompanyService;
 import com.hotelJB.hotelJB_API.Dte.company.EncryptionUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -17,7 +18,14 @@ public class DteAuthService {
     private final CompanyService companyService;
     private final EncryptionUtil encryptionUtil;
 
-    private static final String AUTH_URL = "https://apitest.dtes.mh.gob.sv/seguridad/auth";
+    @Value("${dte.auth.url.test}")
+    private String authUrlTest;
+
+    @Value("${dte.auth.url.prod}")
+    private String authUrlProd;
+
+    @Value("${dte.env}")
+    private String dteEnv; // "00" o "01"
 
     public DteAuthService(CompanyService companyService, EncryptionUtil encryptionUtil) {
         this.companyService = companyService;
@@ -36,7 +44,6 @@ public class DteAuthService {
             throw new RuntimeException("El NIT o la contraseña del MH no están configurados.");
         }
 
-        //  Descifrar la contraseña
         String password;
         try {
             password = encryptionUtil.decrypt(encryptedPassword);
@@ -53,8 +60,11 @@ public class DteAuthService {
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(formData, headers);
 
+        //!Usar la URL correcta según el entorno
+        String authUrl = "01".equals(dteEnv) ? authUrlProd : authUrlTest;
+
         ResponseEntity<Map> response = restTemplate.exchange(
-                AUTH_URL,
+                authUrl,
                 HttpMethod.POST,
                 request,
                 Map.class
@@ -87,3 +97,4 @@ public class DteAuthService {
         return token;
     }
 }
+

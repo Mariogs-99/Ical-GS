@@ -12,6 +12,7 @@ import com.hotelJB.hotelJB_API.repositories.RoomRepository;
 import com.hotelJB.hotelJB_API.utils.CustomException;
 import com.hotelJB.hotelJB_API.utils.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -32,6 +33,10 @@ public class DteBuilderService {
     @Autowired
     private CompanyService companyService;
 
+    @Value("${dte.env}")
+    private String dteEnv;
+
+
 
     public DteBuilderResult buildDte(Reservation reservation, List<ReservationRoomDTO> rooms) {
 
@@ -42,7 +47,12 @@ public class DteBuilderService {
         // ============================
         IdentificacionDTO identificacion = new IdentificacionDTO();
         identificacion.setVersion(1);
-        identificacion.setAmbiente("00");
+        //?Validad para envitar errores
+        if (!"00".equals(dteEnv) && !"01".equals(dteEnv)) {
+            throw new IllegalArgumentException("Valor inválido para dte.env. Debe ser '00' o '01'");
+        }
+        identificacion.setAmbiente(dteEnv);
+
         identificacion.setTipoDte("01");
 
         String numeroControl = generarNumeroControl();
