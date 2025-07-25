@@ -53,7 +53,7 @@ public class DteBuilderService {
         identificacion.setTipoModelo(1);
         identificacion.setTipoOperacion(1);
         identificacion.setTipoMoneda("USD");
-        identificacion.setFecEmi(reservation.getInitDate().toString());
+        identificacion.setFecEmi(java.time.LocalDate.now().toString());
         identificacion.setHorEmi(LocalTime.now()
                 .withSecond(0)
                 .withNano(0)

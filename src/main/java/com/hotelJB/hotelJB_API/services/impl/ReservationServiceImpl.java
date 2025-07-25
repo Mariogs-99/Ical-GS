@@ -36,6 +36,7 @@ import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JREmptyDataSource;
 
 import java.io.File;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -1218,14 +1219,15 @@ public class ReservationServiceImpl implements ReservationService {
             dteRepository.save(dteEntity);
 
             // Generar PDF
-            JasperReport jasperReport = JasperCompileManager.compileReport(
-                    "src/main/resources/reports/DTEFactura.jrxml"
-            );
+            InputStream reportStream = getClass().getResourceAsStream("/reports/DTEFactura.jrxml");
+            JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
+
             JasperPrint jasperPrint = JasperFillManager.fillReport(
                     jasperReport,
                     jasperParams,
                     new JREmptyDataSource()
             );
+
 
             String pdfDirectory = "PDF";
             String pdfFileName = "DTEFactura_" + reservationId + ".pdf";
